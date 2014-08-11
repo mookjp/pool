@@ -5,6 +5,7 @@
 VAGRANTFILE_API_VERSION = "2"
 
 $script = <<SCRIPT
+export PATH=$PATH:/usr/local/bin
 cd /tmp
 
 # Set time
