@@ -56,11 +56,12 @@ def build(commit_id)
   Apache.errlogger Apache::APLOG_NOTICE, "repository url:  #{repository_url}"
   repository_name = repository_url.split('/')[-1].split('.')[0]
 
+  repository_path = "#{WORK_DIR}/#{repository_name}"
   if FileTest.exist?(WORK_DIR)
-    `cd #{WORK_DIR}/#{repository_name} && git fetch origin && git checkout #{commit_id}`
+    `cd #{repository_path} && git fetch origin && git checkout #{commit_id}`
   else
     `git clone -n #{repository_url} #{WORK_DIR}/#{repository_name}`
-    `cd #{WORK_DIR}/#{repository_name} && git checkout #{commit_id}`
+    `cd #{repository_path} && git checkout #{commit_id}`
   end
   
 
