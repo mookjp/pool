@@ -102,7 +102,7 @@ end
 def get_port_of_container(container_id)
   Apache.errlogger Apache::APLOG_NOTICE, \
     "Getting port id for container<#{container_id}>"
-  `docker inspect --format='{{(index (index .NetworkSettings.Ports "80/tcp") 0).HostPort}}' #{container_id}`
+  `docker inspect --format='{{(index (index .NetworkSettings.Ports "80/tcp") 0).HostPort}}' #{container_id}`.chomp
 end
 
 #
