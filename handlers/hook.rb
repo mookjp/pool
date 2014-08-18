@@ -45,7 +45,7 @@ end
 # Docker image will be built by Dockerfile in Git repository which is pointed
 # by Git commit id.
 # This method returns Dcoker image id.
-# 
+#
 # [commit_id]
 #   Git commit id
 #
@@ -63,7 +63,7 @@ def build(commit_id)
     `git clone -n #{repository_url} #{WORK_DIR}/#{repository_name}`
     `cd #{repository_path} && git checkout #{commit_id}`
   end
-  
+
 
   Apache.errlogger Apache::APLOG_NOTICE, "Start building docker image..."
   image_id = \
@@ -95,7 +95,7 @@ def write_ids(commit_id, image_id, id_file = ID_FILE)
   commit id<#{commit_id}> to #{ID_FILE}"
 
   File.open(id_file, "a") do |file|
-    file.write("#{commit_id}/#{image_id}")
+    file.write("#{commit_id}/#{image_id}\n")
   end
 end
 
