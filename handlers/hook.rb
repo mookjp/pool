@@ -57,7 +57,7 @@ def build(commit_id)
   repository_name = repository_url.split('/')[-1].split('.')[0]
 
   repository_path = "#{WORK_DIR}/#{repository_name}"
-  if FileTest.exist?(WORK_DIR)
+  if FileTest.exist?(repository_path)
     `cd #{repository_path} && git fetch origin && git checkout #{commit_id}`
   else
     `git clone -n #{repository_url} #{WORK_DIR}/#{repository_name}`
