@@ -70,8 +70,10 @@ def build(commit_id)
   `docker build -t '#{repository_name}/#{commit_id}' #{WORK_DIR}/#{repository_name}`\
     .split("\n")[-1]\
     .split(" ")[-1]
-  write_ids(commit_id, image_id)
-  return image_id
+  image_full_id = \
+  `docker inspect --format='{{.Id}}' #{image_id}`.chomp
+  write_ids(commit_id, image_full_id)
+  return image_full_id
 end
 
 def run(image_id)
@@ -129,11 +131,13 @@ def get_container_id(commit_id, id_file = ID_FILE)
   return nil if ids.empty?
 
   ids.each do |id_set|
-    image_id = id_set[0]
-    if commit_id == image_id
+    file_commit_id = id_set[0]
+    file_image_id = id_set[1]
+    if commit_id == file_commit_id
       containers.each do |con_ids|
-        image_id == con_ids[0] # Container's image id
-        return con_ids[1]
+        if file_image_id == con_ids[0] # Container image id
+          return con_ids[1]
+        end
       end
     end
   end
@@ -156,6 +160,7 @@ else
   port = get_port_of_container(container_id)
 end
 
+Apache.errlogger Apache::APLOG_NOTICE, "commit_id=#{target_commit_id} port=#{port} containerid=#{container_id} image_id=#{image_id}"
 r = Apache::Request.new()
 r.handler  = "proxy-server"
 r.proxyreq = Apache::PROXYREQ_REVERSE
