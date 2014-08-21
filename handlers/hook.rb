@@ -166,14 +166,3 @@ r.handler  = "proxy-server"
 r.proxyreq = Apache::PROXYREQ_REVERSE
 r.filename = "proxy:" + "http://0.0.0.0:#{port}" + r.unparsed_uri
 Apache::return(Apache::OK)
-
-#if is_running(target_commit_id)
-#
-#end
-
-#hin.all.keys.each do |k|
-#  Apache.rputs "#{k}: #{hin[k]}"
-#  Apache.rputs "\n"
-#end
-#Apache.rputs hin["Host"].split(".")[0]
-#Apache.return(Apache::OK)
