@@ -161,8 +161,8 @@ else
 end
 
 Apache.errlogger Apache::APLOG_NOTICE, "commit_id=#{target_commit_id} port=#{port} containerid=#{container_id} image_id=#{image_id}"
+
 r = Apache::Request.new()
-r.handler  = "proxy-server"
-r.proxyreq = Apache::PROXYREQ_REVERSE
-r.filename = "proxy:" + "http://0.0.0.0:#{port}" + r.unparsed_uri
+r.reverse_proxy "http://0.0.0.0:#{port}" + r.unparsed_uri
+
 Apache::return(Apache::OK)
