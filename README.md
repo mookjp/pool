@@ -46,3 +46,8 @@ and port is linked with front automatically. All you can do is just to access
 [matsumoto-r/mod_mruby](https://github.com/matsumoto-r/mod_mruby).
 If you want to check it with your own Docker web-app project, you can rewrite
 Git repository url inside `handlers/hook.rb`.
+
+## Contributors:
+
+Patches contributed by [gread developers](https://github.com/mookjp/pool/contributors).
+
