@@ -45,6 +45,10 @@ chmod u+x /tmp/mod_mruby/build.sh
 ./build.sh
 make install
 
+# Install required gems
+/usr/local/bin/ruby gem install git
+/usr/local/bin/ruby gem install em-websocket
+
 # hostname settings
 cp /app/provisioning/network /etc/sysconfig/network
 cp /app/provisioning/hosts /etc/sysconfig/hosts
@@ -62,6 +66,8 @@ usermod -G docker apache
 service network restart
 service httpd start
 service docker start
+# Start build server
+/usr/local/bin/ruby /app/builder/build_server.rb &
 SCRIPT
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
