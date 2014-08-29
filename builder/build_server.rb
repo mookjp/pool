@@ -5,10 +5,10 @@ require 'pty'
 require 'builder'
 
 EM.run {
-  EM::WebSocket.run(:host => "0.0.0.0", :port => 8080) do |ws|
+  EM::WebSocket.run(:host => '0.0.0.0', :port => 8080) do |ws|
     ws.onopen { |handshake|
-      puts "WebSocket connection open"
-      @git_commit_id = handshake.headers["Host"].split(".")[0]
+      puts 'WebSocket connection open'
+      @git_commit_id = handshake.headers['Host'].split('.')[0]
 
       Thread.new(ws) do |ws|
         begin
@@ -21,10 +21,10 @@ EM.run {
       end
     }
 
-    ws.onclose { puts "Connection closed" }
+    ws.onclose { puts 'Connection closed' }
 
     ws.onmessage { |msg|
-      puts "Recieved message: #{msg}"
+      puts "Received message: #{msg}"
       ws.send "Pong: #{msg}"
     }
   end
