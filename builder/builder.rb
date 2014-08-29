@@ -3,10 +3,10 @@ require 'logger'
 
 class Builder
 
-  WORK_DIR = "/app/images"
+  WORK_DIR = '/app/images'
   ID_FILE = "#{WORK_DIR}/ids"
-  REPOSITORY_URL = "https://github.com/mookjp/flaskapp.git"
-  REPOSITORY_NAME = "flaskapp"
+  REPOSITORY_URL = 'https://github.com/mookjp/flaskapp.git'
+  REPOSITORY_NAME = 'flaskapp'
   REPOSITORY_PATH = "#{WORK_DIR}/#{REPOSITORY_NAME}"
 
   #
@@ -29,7 +29,7 @@ class Builder
   def up
     image_id = build
     run(image_id)
-    @ws.send "FINISHED"
+    @ws.send 'FINISHED'
   end
 
   # Wrap command with pty spawn to get output
@@ -38,7 +38,7 @@ class Builder
   #   command to execute
   #
   def ptywrap(command)
-    last_line = ""
+    last_line = ''
 
     PTY.spawn(command) do |r, w, pid|
       begin
@@ -50,7 +50,7 @@ class Builder
       end
     end
 
-    return last_line
+    last_line
   end
 
   #
@@ -74,7 +74,7 @@ class Builder
     end
     @ws.send @rgit.checkout(@git_commit_id)
 
-    @ws.send "Start building docker image..."
+    @ws.send 'Start building docker image...'
     build_command = "docker build -t '#{REPOSITORY_NAME}/#{@git_commit_id}' #{WORK_DIR}/#{REPOSITORY_NAME}"
     last_line = ptywrap(build_command)
     image_id = last_line.split(" ")[-1]
@@ -83,7 +83,7 @@ class Builder
     image_full_id = \
       `docker inspect --format='{{.Id}}' #{image_id}`.chomp
     write_ids(image_full_id)
-    return image_full_id
+    image_full_id
   end
 
   #
@@ -92,8 +92,13 @@ class Builder
   #   Docker image id
   #
   def run(image_id)
-    @ws.send "Start running container..."
-    `docker run -P -d #{image_id}`.chomp
+    @ws.send 'Start running container...'
+    container_id = `docker run -P -d #{image_id}`.chomp
+
+    is_running = `docker inspect --format='{{.State.Running}}' #{container_id}`
+    raise RuntimeError, 'Counldn\' start running container.' if is_running.eql? 'false'
+
+    container_id
   end
 
   #
@@ -121,6 +126,8 @@ class Builder
   #
   def get_port_of_container(container_id)
     @ws.send "Getting port id for container <#{container_id}> ..."
-    `docker inspect --format='{{(index (index .NetworkSettings.Ports "80/tcp") 0).HostPort}}' #{container_id}`.chomp
+    `docker inspect \
+    --format='{{(index (index .NetworkSettings.Ports "80/tcp") 0).HostPort}}' \
+    #{container_id}`.chomp
   end
 end

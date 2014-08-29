@@ -9,8 +9,9 @@ var ws = new WebSocket("ws://" + document.location.host + ":8080");
 ws.onmessage = function(event){
     if (event.data == "FINISHED") {
         document.location.reload();
+    } else {
+        document.body.innerHTML += event.data + "<br>";
     }
-    document.body.innerHTML += event.data + "<br>";
 }
 
 ws.onerror = function(event){
