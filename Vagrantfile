@@ -12,7 +12,6 @@ cd /tmp
 mv /etc/localtime /etc/localtime.bak
 ln -s /usr/share/zoneinfo/Japan /etc/localtime
 
-rpm -ivh http://ftp-srv2.kddilabs.jp/Linux/distributions/fedora/epel/6/x86_64/epel-release-6-8.noarch.rpm
 # Install required packages
 yum update -y
 yum install -y bison
@@ -45,9 +44,12 @@ chmod u+x /tmp/mod_mruby/build.sh
 ./build.sh
 make install
 
+# Add PATH
+sudo sh -c 'find /opt/ruby-2.1.2/bin/* | xargs -I {} ln -s {} /usr/local/bin'
+
 # Install required gems
-/usr/local/bin/ruby gem install git
-/usr/local/bin/ruby gem install em-websocket
+/usr/local/bin/gem install git --no-document
+/usr/local/bin/gem install em-websocket --no-document
 
 # hostname settings
 cp /app/provisioning/network /etc/sysconfig/network
