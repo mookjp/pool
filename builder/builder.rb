@@ -1,10 +1,13 @@
+$:.unshift '/app/builder'
 require 'git'
 require 'logger'
+require 'builder_log_device'
 
 class Builder
 
   WORK_DIR = '/app/images'
   ID_FILE = "#{WORK_DIR}/ids"
+  LOG_FILE = "#{WORK_DIR}/log/builder.log"
   REPOSITORY_URL = 'https://github.com/mookjp/flaskapp.git'
   REPOSITORY_NAME = 'flaskapp'
   REPOSITORY_PATH = "#{WORK_DIR}/#{REPOSITORY_NAME}"
@@ -21,7 +24,9 @@ class Builder
     @ws = ws
     @git_commit_id = git_commit_id
     @ws.send "Initialized. Git commit id: #{@git_commit_id}"
-    @rgit = Git.open(REPOSITORY_PATH, :log => Logger.new(STDOUT))
+    # Create LogDevice to log to websocket message
+    log_device = BuilderLogDevice.new(@ws)
+    @rgit = Git.open(REPOSITORY_PATH, :log => Logger.new(log_device))
   end
 
   # Build Docker image and run it as a container.
@@ -57,7 +62,7 @@ class Builder
   # Build Docker image from Git commit id.
   # Docker image will be built by Dockerfile in Git repository which is pointed
   # by Git commit id.
-  # This method returns Dcoker image id.
+  # This method returns Docker image id.
   #
   def build
     @ws.send "Build for #{@git_commit_id} ..."
