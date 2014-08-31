@@ -15,8 +15,8 @@ EM.run {
           builder = Builder.new(ws, @git_commit_id)
           builder.up
         rescue => ex
-          puts "#{ex.class}: #{ex.message}"
-          ws.send "#{ex.class}: #{ex.message}"
+          puts "#{ex.class}: #{ex.message}; #{ex.backtrace}"
+          ws.send "#{ex.class}: #{ex.message}; #{ex.backtrace}"
         end
       end
     }
