@@ -10,7 +10,7 @@ class BuilderLogDevice
   #   File obejct to write log; this parameter is optional
   def initialize(ws, logfile = nil)
     raise RuntimeError, 'Output objects are nil' if ws.nil?
-    @logfile = File.new(logfile, 'w+') unless logfile.nil?
+    @logfile = File.new(logfile, 'a') unless logfile.nil?
     @ws = ws
   end
 

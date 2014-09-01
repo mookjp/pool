@@ -7,6 +7,7 @@ require 'builder_log_device'
 class Builder
 
   WORK_DIR = '/app/images'
+  LOG_FILE = "#{WORK_DIR}/builder.log"
   ID_FILE = "#{WORK_DIR}/ids"
   REPOSITORY_URL = 'https://github.com/mookjp/flaskapp.git'
   REPOSITORY_NAME = 'flaskapp'
@@ -25,7 +26,8 @@ class Builder
 
     @ws = ws
     @git_commit_id = git_commit_id
-    @ws.send "Initialized. Git commit id: #{@git_commit_id}"
+    @logger = Logger.new(BuilderLogDevice.new(@ws, "#{LOG_FILE}"))
+    @logger.info "Initialized. Git commit id: #{@git_commit_id}"
 
     # Initialize Git repository and set @rgit instance
     init_repo
@@ -36,18 +38,18 @@ class Builder
   def init_repo
     log_device = BuilderLogDevice.new(@ws)
 
-    @ws.send "repository url:  #{REPOSITORY_URL}"
+    @logger.info "repository url:  #{REPOSITORY_URL}"
 
     if FileTest.exist?(REPOSITORY_PATH)
-      @ws.send "repository path exists: #{REPOSITORY_PATH}"
-      @rgit = Git.open(REPOSITORY_PATH, :log => Logger.new(log_device))
-      @ws.send @rgit.fetch
+      @logger.info "repository path exists: #{REPOSITORY_PATH}"
+      @rgit = Git.open(REPOSITORY_PATH, :log => @logger)
+      @logger.info @rgit.fetch
     else
-      @ws.send "repository path doesn't exist: #{REPOSITORY_PATH}"
+      @logger.info "repository path doesn't exist: #{REPOSITORY_PATH}"
       # Create LogDevice to log to websocket message
       @rgit = Git.clone(REPOSITORY_URL, REPOSITORY_NAME,
                         :path => WORK_DIR,
-                        :log => Logger.new(log_device))
+                        :log => @logger)
     end
   end
 
@@ -60,6 +62,7 @@ class Builder
   def up
     image_id = build
     run(image_id)
+    @logger.info 'FINISHED'
     @ws.send 'FINISHED'
   end
 
@@ -74,7 +77,7 @@ class Builder
     PTY.spawn(command) do |r, w, pid|
       begin
         r.each do |line|
-          @ws.send line
+          @logger.info line
           last_line = line
         end
       rescue Errno::EIO
@@ -91,15 +94,15 @@ class Builder
   # This method returns Docker image id.
   #
   def build
-    @ws.send "Build for #{@git_commit_id} ..."
+    @logger.info "Build for #{@git_commit_id} ..."
 
-    @ws.send @rgit.checkout(@git_commit_id)
+    @logger.info @rgit.checkout(@git_commit_id)
 
-    @ws.send 'Start building docker image...'
+    @logger.info 'Start building docker image...'
     build_command = "docker build -t '#{REPOSITORY_NAME}/#{@git_commit_id}' #{WORK_DIR}/#{REPOSITORY_NAME}"
     last_line = ptywrap(build_command)
     image_id = last_line.split(" ")[-1]
-    @ws.send "image_id is #{image_id}"
+    @logger.info "image_id is #{image_id}"
 
     image_full_id = \
       `docker inspect --format='{{.Id}}' #{image_id}`.chomp
@@ -113,7 +116,7 @@ class Builder
   #   Docker image id
   #
   def run(image_id)
-    @ws.send 'Start running container...'
+    @logger.info 'Start running container...'
     container_id = `docker run -P -d #{image_id}`.chomp
 
     is_running = `docker inspect --format='{{.State.Running}}' #{container_id}`
@@ -132,7 +135,7 @@ class Builder
   #   Path to id file
   #
   def write_ids(image_id, id_file = ID_FILE)
-    @ws.send "Write image id <#{image_id}> and commit id <#{@git_commit_id}> to #{ID_FILE}"
+    @logger.info "Write image id <#{image_id}> and commit id <#{@git_commit_id}> to #{ID_FILE}"
 
     File.open(id_file, "a") do |file|
       file.write("#{@git_commit_id}/#{image_id}\n")
@@ -146,7 +149,7 @@ class Builder
   #   Docker container id
   #
   def get_port_of_container(container_id)
-    @ws.send "Getting port id for container <#{container_id}> ..."
+    @logger.info "Getting port id for container <#{container_id}> ..."
     `docker inspect \
     --format='{{(index (index .NetworkSettings.Ports "80/tcp") 0).HostPort}}' \
     #{container_id}`.chomp
