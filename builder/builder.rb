@@ -79,6 +79,13 @@ class Builder
         r.each do |line|
           @logger.info line
           last_line = line
+
+          status = PTY.check pid
+          unless status.nil?
+            raise RuntimeError,
+                  "Docker build has not finished successfully, see #{LOG_FILE}"\
+                  unless status.exitstatus.eql? 0
+          end
         end
       rescue Errno::EIO
       end
