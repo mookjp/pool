@@ -1,8 +1,10 @@
 $:.unshift '/app/builder'
 require 'fileutils'
-require 'git'
+require 'net/http'
 require 'logger'
+
 require 'builder_log_device'
+require 'git'
 
 class Builder
 
@@ -60,10 +62,39 @@ class Builder
 
   # Build Docker image and run it as a container.
   def up
-    image_id = build
-    run(image_id)
-    @logger.info 'FINISHED'
-    @ws.send 'FINISHED'
+    begin
+      image_id = build
+      container_id = run image_id
+      confirm_running container_id
+    rescue => ex
+      @logger.error ex
+      @logger.close
+      raise
+    end
+  end
+
+  # Confirm container application is ready to get request via HTTP
+  # the container is not ready, wait and retry to send request
+  #
+  # TODO: need to set protocol, port and path by the user
+  def confirm_running(container_id)
+    port = get_port_of_container container_id
+
+    tried_count = 1
+    begin
+      @logger.info "Checking application is ready... trying count:#{tried_count}"
+      Net::HTTP.get('0.0.0.0', '/', port)
+      @logger.info("Application is ready! forwarding to port #{port}")
+      @logger.info 'FINISHED'
+      @ws.send 'FINISHED'
+    rescue
+      if tried_count <= 10
+        sleep 1
+        tried_count += 1
+        retry
+      end
+      raise
+    end
   end
 
   # Wrap command with pty spawn to get output
@@ -157,8 +188,11 @@ class Builder
   #
   def get_port_of_container(container_id)
     @logger.info "Getting port id for container <#{container_id}> ..."
-    `docker inspect \
+    port = `docker inspect \
     --format='{{(index (index .NetworkSettings.Ports "80/tcp") 0).HostPort}}' \
     #{container_id}`.chomp
+    @logger.info "port for container #{container_id} is : #{port}"
+
+    return port
   end
 end
