@@ -1,4 +1,5 @@
 $:.unshift '/app/builder'
+require 'fileutils'
 require 'git'
 require 'logger'
 require 'builder_log_device'
@@ -7,7 +8,6 @@ class Builder
 
   WORK_DIR = '/app/images'
   ID_FILE = "#{WORK_DIR}/ids"
-  LOG_FILE = "#{WORK_DIR}/log/builder.log"
   REPOSITORY_URL = 'https://github.com/mookjp/flaskapp.git'
   REPOSITORY_NAME = 'flaskapp'
   REPOSITORY_PATH = "#{WORK_DIR}/#{REPOSITORY_NAME}"
@@ -21,16 +21,42 @@ class Builder
   #   Git commit id
   #
   def initialize(ws, git_commit_id)
+    create_dirs
+
     @ws = ws
     @git_commit_id = git_commit_id
     @ws.send "Initialized. Git commit id: #{@git_commit_id}"
-    # Create LogDevice to log to websocket message
+
+    # Initialize Git repository and set @rgit instance
+    init_repo
+  end
+
+  # Initialize application Git repository to clone from remote
+  # If the repository exists, it fetches the latest
+  def init_repo
     log_device = BuilderLogDevice.new(@ws)
-    @rgit = Git.open(REPOSITORY_PATH, :log => Logger.new(log_device))
+
+    @ws.send "repository url:  #{REPOSITORY_URL}"
+
+    if FileTest.exist?(REPOSITORY_PATH)
+      @ws.send "repository path exists: #{REPOSITORY_PATH}"
+      @rgit = Git.open(REPOSITORY_PATH, :log => Logger.new(log_device))
+      @ws.send @rgit.fetch
+    else
+      @ws.send "repository path doesn't exist: #{REPOSITORY_PATH}"
+      # Create LogDevice to log to websocket message
+      @rgit = Git.clone(REPOSITORY_URL, REPOSITORY_NAME,
+                        :path => WORK_DIR,
+                        :log => Logger.new(log_device))
+    end
+  end
+
+  # Create required directory if it has not been created yet
+  def create_dirs
+    FileUtils.mkdir_p(WORK_DIR) unless File.exist?(WORK_DIR)
   end
 
   # Build Docker image and run it as a container.
-  #
   def up
     image_id = build
     run(image_id)
@@ -67,16 +93,6 @@ class Builder
   def build
     @ws.send "Build for #{@git_commit_id} ..."
 
-    repository_url = REPOSITORY_URL
-    @ws.send "repository url:  #{repository_url}"
-
-    if FileTest.exist?(REPOSITORY_PATH)
-      @ws.send "repository path exists: #{REPOSITORY_PATH}"
-      @ws.send @rgit.fetch
-    else
-      @ws.send "repository path doesn't exist: #{REPOSITORY_PATH}"
-      @ws.send @rgit = Git.clone(REPOSITORY_URL, REPOSITORY_NAME, :repository => REPOSITORY_PATH)
-    end
     @ws.send @rgit.checkout(@git_commit_id)
 
     @ws.send 'Start building docker image...'
@@ -101,7 +117,7 @@ class Builder
     container_id = `docker run -P -d #{image_id}`.chomp
 
     is_running = `docker inspect --format='{{.State.Running}}' #{container_id}`
-    raise RuntimeError, 'Counldn\' start running container.' if is_running.eql? 'false'
+    raise RuntimeError, 'Could not start running container.' if is_running.eql? 'false'
 
     container_id
   end
