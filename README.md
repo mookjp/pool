@@ -49,5 +49,5 @@ Git repository url inside `handlers/hook.rb`.
 
 ## Contributors:
 
-Patches contributed by [gread developers](https://github.com/mookjp/pool/contributors).
+Patches contributed by [great developers](https://github.com/mookjp/pool/contributors).
 
