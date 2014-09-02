@@ -42,10 +42,16 @@ repository. After checkout files, the container will be built by the Dockerfile
 and port is linked with front automatically. All you can do is just to access
 `http://<git-commit-id>.pool.dev`.
 
-`handlers/hook.rb` is the only file to handle this. This is a hook script of
+pool consists of two module; proxy hook and container builder.
+
+`handlers/hook.rb` handles HTTP request as proxy. This is a hook script of
 [matsumoto-r/mod_mruby](https://github.com/matsumoto-r/mod_mruby).
-If you want to check it with your own Docker web-app project, you can rewrite
-Git repository url inside `handlers/hook.rb`.
+It forwards port which Docker container was assigned by Git-commit-id.
+
+If there's no container which corresponds to Git-commit-id, `build_server.rb` works to
+build Docker image then runs it.
+`build_server.rb` sends build log so that you can confirm the status of build process
+while waiting.
 
 ## Contributors:
 
