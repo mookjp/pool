@@ -26,6 +26,7 @@ yum install -y libyaml-devel
 yum install -y openssl-devel
 yum install -y readline
 yum install -y readline-devel
+yum install -y supervisor
 yum install -y tar
 yum install -y zlib
 yum install -y zlib-devel
@@ -64,12 +65,18 @@ cp /app/provisioning/mruby.conf /etc/httpd/conf.d/mruby.conf
 # Add apache to docker group to access docker sockfile
 usermod -G docker apache
 
+# Add supervisor configuration file
+cp /app/provisioning/supervisord.conf /etc/supervisord.conf
+
+# Add log directories
+mkdir -p /var/log/supervisor
+mkdir -p /var/log/builder
+
 # Start services
 service network restart
 service httpd start
 service docker start
-# Start build server
-/usr/local/bin/ruby /app/builder/build_server.rb &
+service supervisord start
 SCRIPT
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
