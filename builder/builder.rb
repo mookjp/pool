@@ -68,8 +68,9 @@ class Builder
       confirm_running container_id
     rescue => ex
       @logger.error ex
-      @logger.close
       raise
+    ensure
+      @logger.close
     end
   end
 
