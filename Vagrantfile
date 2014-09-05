@@ -68,6 +68,10 @@ usermod -G docker apache
 # Add supervisor configuration file
 cp /app/provisioning/supervisord.conf /etc/supervisord.conf
 
+# Add misc direcotries and file to launch hook script
+mkdir -p /app/images
+touch /app/images/ids
+
 # Add log directories
 mkdir -p /var/log/supervisor
 mkdir -p /var/log/builder
