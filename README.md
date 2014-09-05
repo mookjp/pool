@@ -1,7 +1,7 @@
 🐳 pool 🐳
 ===
 
-The simplest proxy service to access your Dockernized webapps by Git commit-id.
+The simplest proxy service to access your Dockerized webapps by Git commit-id.
 
 You can build and run your web application as a Docker container just to access
 `http://<git-commit-id>.pool.dev` for example.
@@ -33,6 +33,9 @@ then run:
 
 Vagrantfile has dns settings for this development environment.
 You can access your Docker container just to go `http://<git-commit-id>.pool.dev`.
+
+By default, pool sees [mookjp/flaskapp](https://github.com/mookjp/flaskapp) repository.
+You can see this hello-world flask app by going to `http://c8f48c60088bbae0d0fb25ed5fd04f4442b58617.pool.dev/` or `http://master.pool.dev/`
 
 ## How it works
 
