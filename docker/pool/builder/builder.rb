@@ -189,11 +189,15 @@ class Builder
   #
   def get_port_of_container(container_id)
     @logger.info "Getting port id for container <#{container_id}> ..."
-    port = `docker inspect \
-    --format='{{(index (index .NetworkSettings.Ports "80/tcp") 0).HostPort}}' \
-    #{container_id}`.chomp
+    port = container_port
     @logger.info "port for container #{container_id} is : #{port}"
 
     return port
   end
+
+  def container_port
+    #TODO: change to use user-defined value
+    return 80
+  end
+
 end
