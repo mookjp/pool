@@ -5,8 +5,12 @@ WORKDIR /tmp
 
 RUN rpm -ivh http://ftp-srv2.kddilabs.jp/Linux/distributions/fedora/epel/6/x86_64/epel-release-6-8.noarch.rpm
 
+RUN export PATH=$PATH:/usr/local/bin
+
+# Set time
+RUN cp /usr/share/zoneinfo/Japan /etc/localtime
+
 # Install required packages
-RUN yum update -y
 RUN yum install -y bison
 RUN yum install -y gcc-c++
 RUN yum install -y docker-io
@@ -24,6 +28,7 @@ RUN yum install -y tar
 RUN yum install -y zlib
 RUN yum install -y zlib-devel
 
+
 # Install Ruby
 RUN git clone https://github.com/sstephenson/ruby-build.git /opt/ruby-build
 RUN chmod u+x /opt/ruby-build/install.sh
@@ -34,13 +39,47 @@ RUN ln -s /opt/ruby-2.1.2/bin/ruby /usr/local/bin/ruby
 # Install mod_mruby
 RUN git clone https://github.com/matsumoto-r/mod_mruby.git /tmp/mod_mruby
 WORKDIR /tmp/mod_mruby
-RUN chmod u+x /tmp/mod_mruby/build.sh
-RUN /tmp/mod_mruby/build.sh
-RUN make -C /tmp/mod_mruby install
+RUN chmod u+x ./build.sh
+RUN ./build.sh
+RUN make install
+WORKDIR /tmp
 
-# Add supervisor conf
-ADD supervisord.conf /etc/supervisord.conf
+# Add PATH
+RUN rm /usr/local/bin/ruby
+RUN find /opt/ruby-2.1.2/bin/* | xargs -I {} ln -s {} /usr/local/bin
 
-EXPOSE 80
+# Install required gems
+RUN /usr/local/bin/gem install git --no-document
+RUN /usr/local/bin/gem install em-websocket --no-document
 
-ENTRYPOINT ["/usr/bin/supervisord", "-n"]
+# hostname settings
+ADD provisioning/network /etc/sysconfig/network
+ADD provisioning/hosts /etc/sysconfig/hosts
+
+# Apache settings
+ADD provisioning/httpd.conf /etc/httpd/conf/httpd.conf
+ADD provisioning/mruby.conf /etc/httpd/conf.d/mruby.conf
+
+# Add apache to docker group to access docker sockfile
+RUN usermod -G docker apache
+
+# Add supervisor configuration file
+ADD provisioning/supervisord.conf /etc/supervisord.conf
+
+ADD builder /app/builder
+ADD handlers /app/handlers
+
+# Add log directories
+RUN mkdir -p /var/log/supervisor
+RUN mkdir -p /var/log/builder
+RUN mkdir -p /app/images
+RUN touch /app/images/ids
+
+EXPOSE 80 8080
+
+CMD \
+    chmod 775 /var/run/docker.sock && \
+    service httpd start && \
+    service supervisord start && \
+    tailf /var/log/httpd/error_log
+
