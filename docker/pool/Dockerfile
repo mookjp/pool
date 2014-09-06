@@ -78,6 +78,7 @@ RUN touch /app/images/ids
 EXPOSE 80 8080
 
 CMD \
+    chown root:docker /var/run/docker.sock && \
     chmod 775 /var/run/docker.sock && \
     service httpd start && \
     service supervisord start && \
