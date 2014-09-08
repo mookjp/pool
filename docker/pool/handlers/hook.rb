@@ -12,7 +12,13 @@ ID_FILE = "#{WORK_DIR}/ids"
 def get_port_of_container(container_id)
   Apache.errlogger Apache::APLOG_NOTICE, \
     "Getting port id for container<#{container_id}>"
-  `docker inspect --format='{{(index (index .NetworkSettings.Ports "80/tcp") 0).HostPort}}' #{container_id}`.chomp
+  return 80
+end
+
+def get_addr_of_container(container_id)
+  Apache.errlogger Apache::APLOG_NOTICE, \
+    "Getting address container<#{container_id}>"
+  return `docker inspect --format '{{ .NetworkSettings.IPAddress }}' #{container_id}`.chomp
 end
 
 #
@@ -25,8 +31,8 @@ end
 def get_container_id(commit_id, id_file = ID_FILE)
   Apache.errlogger Apache::APLOG_NOTICE, \
     "Getting container id for commit id<#{commit_id}>"
-
-  containers = `docker ps -q`.split("\n").map { |container_id|
+  
+ containers = `docker ps -q`.split("\n").map { |container_id|
     `docker inspect --format='{{.Image}} {{.Id}}' #{container_id}`.split(" ")
   }
 
@@ -69,8 +75,9 @@ if container_id == nil
   r.filename= "/app/handlers/resources/building.html"
   Apache::return(Apache::OK)
 else
+  addr = get_addr_of_container(container_id)
   port = get_port_of_container(container_id)
   r = Apache::Request.new()
-  r.reverse_proxy "http://0.0.0.0:#{port}" + r.unparsed_uri
+  r.reverse_proxy "http://#{addr}:#{port}" + r.unparsed_uri
   Apache::return(Apache::OK)
 end
