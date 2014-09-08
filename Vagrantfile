@@ -15,6 +15,7 @@ docker build -t pool-server .
 docker run -d -v /var/run/docker.sock:/var/run/docker.sock \
               --name pool -p 80:80 -p 8080:8080 pool-server
 hostname pool
+SCRIPT
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = "coreos-alpha"
