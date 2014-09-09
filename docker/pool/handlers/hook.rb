@@ -72,7 +72,7 @@ container_id = get_container_id(target_commit_id)
 
 if container_id == nil
   r = Apache::Request.new
-  r.filename= "/app/handlers/resources/building.html"
+  r.filename= "/app/handlers/resources/build-screen/" + r.uri
   Apache::return(Apache::OK)
 else
   addr = get_addr_of_container(container_id)
