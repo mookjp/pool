@@ -10,16 +10,23 @@ You can build and run your web application as a Docker container just to access
 <img src="https://raw.githubusercontent.com/wiki/mookjp/pool/images/architecture.png" width="600"/>
 </p>
 
-
 ## Requirements
+
+### Vagrant
+
+Pool needs [Vagrant](https://www.vagrantup.com/).
 
 ### Vagrant plugin
 
-Need to install [vagrant dns plugin](https://github.com/BerlinVagrant/vagrant-dns). Just run:
+You also need to install [vagrant dns plugin](https://github.com/BerlinVagrant/vagrant-dns). Just run after vagrant was installed:
 
 > $ vagrant plugin install vagrant-dns
 
-## Setup
+## Quick start
+
+Launching web app with pool is handy. We just run the following two steps.
+
+### Laucnch Vagrant box
 
 Set the configration for dns first:
 
@@ -31,11 +38,12 @@ then run:
 
 > $ vagrant up
 
-Vagrantfile has dns settings for this development environment.
-You can access your Docker container just to go `http://<git-commit-id>.pool.dev`.
+### Access web application
 
-By default, pool sees [mookjp/flaskapp](https://github.com/mookjp/flaskapp) repository.
-You can see this hello-world flask app by going to `http://c8f48c60088bbae0d0fb25ed5fd04f4442b58617.pool.dev/` or `http://master.pool.dev/`
+To watch the web application with pool, you just access `http://<git-commit-id>.pool.dev` with your **browser**.
+
+In the default setting, pool is configured for the web application maintained in the [mookjp/flaskapp](https://github.com/mookjp/flaskapp) repository.
+You can see the flask app (which just outputs 'hello world') just visiting `http://c8f48c60088bbae0d0fb25ed5fd04f4442b58617.pool.dev/` or `http://master.pool.dev/`.
 
 ## How it works
 
