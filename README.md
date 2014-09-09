@@ -26,7 +26,7 @@ You also need to install [vagrant dns plugin](https://github.com/BerlinVagrant/v
 
 Launching web app with pool is handy. We just run the following two steps.
 
-### Laucnch Vagrant box
+### Launch Vagrant box
 
 Set the configration for dns first:
 
