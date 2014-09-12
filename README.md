@@ -3,6 +3,8 @@
 
 The simplest proxy service to access your Dockerized webapps by Git commit-id.
 
+![](https://cloud.githubusercontent.com/assets/1519309/4186488/54415ec4-3761-11e4-9b13-41e09653945f.gif)
+
 You can build and run your web application as a Docker container just to access
 `http://<git-commit-id>.pool.dev` for example.
 
