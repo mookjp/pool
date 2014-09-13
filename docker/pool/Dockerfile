@@ -33,6 +33,9 @@ ADD provisioning/supervisord.conf /etc/supervisord.conf
 
 ADD builder /app/builder
 ADD handlers /app/handlers
+ADD scripts /app/scripts
+
+RUN chmod +x /app/scripts/starter
 
 # Add log directories
 RUN mkdir -p /var/log/supervisor
@@ -40,12 +43,12 @@ RUN mkdir -p /var/log/builder
 RUN mkdir -p /app/images
 RUN touch /app/images/ids
 
+# Set target preview repository
+ENV PREVIEW_REPOSITORY_URL https://github.com/mookjp/flaskapp.git
+
 EXPOSE 80 8080
 
 CMD \
-    chown root:docker /var/run/docker.sock && \
-    chmod 775 /var/run/docker.sock && \
-    service httpd start && \
-    service supervisord start && \
+    /app/scripts/starter && \
     tailf /var/log/httpd/error_log
 
