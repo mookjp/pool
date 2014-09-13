@@ -72,6 +72,8 @@ container_id = get_container_id(target_commit_id)
 
 if container_id == nil
   r = Apache::Request.new
+  Apache.errlogger Apache::APLOG_NOTICE, \
+    "#{r.uri}, #{r.path_info}, #{r.args}, #{r.protocol}, #{r.the_request}"
   r.filename= "/app/handlers/resources/build-screen/" + r.uri
   Apache::return(Apache::OK)
 else
