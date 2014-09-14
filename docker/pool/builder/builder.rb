@@ -36,11 +36,7 @@ class Builder
 
   # load preview target repository info from config file
   def read_repository_info
-    repository_url = File.open(REPOSITORY_CONF, "r") do |file|
-      file.readlines.map do |line|
-        line.chomp
-      end
-    end.first
+    repository_url = File.open(REPOSITORY_CONF).gets.chomp
     name = repository_url.split("/").last.split(".").first
     return {
       :url => repository_url,
