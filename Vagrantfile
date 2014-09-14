@@ -5,7 +5,9 @@
 VAGRANTFILE_API_VERSION = "2"
 
 $update_channel = "alpha"
+
 $script = <<SCRIPT
+PREVIEW_REPOSITORY_URL=$1
 export PATH=$PATH:/usr/local/bin
 cd /tmp
 
@@ -13,6 +15,7 @@ cd /tmp
 cd /app/docker/pool
 docker build -t pool-server .
 docker run -d -v /var/run/docker.sock:/var/run/docker.sock \
+              --env PREVIEW_REPOSITORY_URL=${PREVIEW_REPOSITORY_URL} \
               --name pool -p 80:80 -p 8080:8080 pool-server
 hostname pool
 SCRIPT
@@ -34,7 +37,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.synced_folder ".", "/app", type: "nfs", 
               :mount_options   => ['nolock,vers=3,udp']
 
-  config.vm.provision "shell", inline: $script
+  config.vm.provision "shell" do |s|
+     s.inline = $script
+     # Set your repository for previewing by pool
+     s.args = ["https://github.com/mookjp/flaskapp.git"]
+  end
+     
   config.vm.provider :virtualbox do |v|
     # On VirtualBox, we don't have guest additions or a functional vboxsf
     # in CoreOS, so tell Vagrant that so it can be smarter.

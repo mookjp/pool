@@ -11,9 +11,7 @@ class Builder
   WORK_DIR = '/app/images'
   LOG_FILE = "#{WORK_DIR}/builder.log"
   ID_FILE = "#{WORK_DIR}/ids"
-  REPOSITORY_URL = 'https://github.com/mookjp/flaskapp.git'
-  REPOSITORY_NAME = 'flaskapp'
-  REPOSITORY_PATH = "#{WORK_DIR}/#{REPOSITORY_NAME}"
+  REPOSITORY_CONF = "#{WORK_DIR}/preview_target_repository"
 
   #
   # Initialize method
@@ -28,6 +26,7 @@ class Builder
 
     @ws = ws
     @git_commit_id = git_commit_id
+    @repository = read_repository_info
     @logger = Logger.new(BuilderLogDevice.new(@ws, "#{LOG_FILE}"))
     @logger.info "Initialized. Git commit id: #{@git_commit_id}"
 
@@ -35,21 +34,32 @@ class Builder
     init_repo
   end
 
+  # load preview target repository info from config file
+  def read_repository_info
+    repository_url = File.open(REPOSITORY_CONF).gets.chomp
+    name = repository_url.split("/").last.split(".").first
+    return {
+      :url => repository_url,
+      :name => name,
+      :path => "#{WORK_DIR}/#{name}",
+    }
+  end
+
   # Initialize application Git repository to clone from remote
   # If the repository exists, it fetches the latest
   def init_repo
     log_device = BuilderLogDevice.new(@ws)
 
-    @logger.info "repository url:  #{REPOSITORY_URL}"
+    @logger.info "repository url:  #{@repository[:url]}"
 
-    if FileTest.exist?(REPOSITORY_PATH)
-      @logger.info "repository path exists: #{REPOSITORY_PATH}"
-      @rgit = Git.open(REPOSITORY_PATH, :log => @logger)
+    if FileTest.exist?(@repository[:path])
+      @logger.info "repository path exists: #{@repository[:path]}"
+      @rgit = Git.open(@repository[:path], :log => @logger)
       @logger.info @rgit.fetch
     else
-      @logger.info "repository path doesn't exist: #{REPOSITORY_PATH}"
+      @logger.info "repository path doesn't exist: #{@repository[:path]}"
       # Create LogDevice to log to websocket message
-      @rgit = Git.clone(REPOSITORY_URL, REPOSITORY_NAME,
+      @rgit = Git.clone(@repository[:url], @repository[:name],
                         :path => WORK_DIR,
                         :log => @logger)
     end
@@ -138,7 +148,7 @@ class Builder
     @logger.info @rgit.checkout(@git_commit_id)
 
     @logger.info 'Start building docker image...'
-    build_command = "docker build -t '#{REPOSITORY_NAME}/#{@git_commit_id}' #{WORK_DIR}/#{REPOSITORY_NAME}"
+    build_command = "docker build -t '#{@repository[:name]}/#{@git_commit_id}' #{WORK_DIR}/#{@repository[:name]}"
     last_line = ptywrap(build_command)
     image_id = last_line.split(" ")[-1]
     @logger.info "image_id is #{image_id}"
