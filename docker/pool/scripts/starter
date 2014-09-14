@@ -1,0 +1,7 @@
+#!/bin/sh
+
+echo ${PREVIEW_REPOSITORY_URL} > /app/images/preview_target_repository
+chown root:docker /var/run/docker.sock && \
+chmod 775 /var/run/docker.sock && \
+service httpd start && \
+service supervisord start
