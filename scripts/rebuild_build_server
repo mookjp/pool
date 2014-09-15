@@ -1,0 +1,31 @@
+#!/bin/sh
+OPTIND=1 
+
+start=false
+
+while getopts "s" opt; do
+    case "$opt" in
+    s)  start=true
+        ;;
+    esac
+done
+
+shift $((OPTIND-1))
+
+docker kill pool 2>&1 > /dev/null
+docker rm pool 2>&1 > /dev/null
+cd /app/docker/pool
+docker build -t pool-server .
+
+if [ $start == "true" ]; then
+     docker run -d -v /var/run/docker.sock:/var/run/docker.sock \
+          --name pool -p 80:80 -p 8080:8080 pool-server
+else
+     echo -e "please run manually: 
+docker run -d -v /var/run/docker.sock:/var/run/docker.sock --name pool -p 80:80 -p 8080:8080 pool-server
+or
+docker run -t -i -v /var/run/docker.sock:/var/run/docker.sock --name pool -p 80:80 -p 8080:8080 pool-server /bin/bash
+"
+fi
+
+
