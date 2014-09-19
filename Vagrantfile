@@ -7,7 +7,10 @@ VAGRANTFILE_API_VERSION = "2"
 $update_channel = "alpha"
 
 $script = <<SCRIPT
+# pass arguments to pool config vars
 PREVIEW_REPOSITORY_URL=$1
+MAX_CONTAINERS=$2
+
 export PATH=$PATH:/usr/local/bin
 cd /tmp
 
@@ -15,6 +18,7 @@ cd /tmp
 cd /app/docker/pool
 docker build -t pool-server .
 docker run -d -v /var/run/docker.sock:/var/run/docker.sock \
+              --env MAX_CONTAINERS=${MAX_CONTAINERS}
               --env PREVIEW_REPOSITORY_URL=${PREVIEW_REPOSITORY_URL} \
               --name pool -p 80:80 -p 8080:8080 pool-server
 hostname pool
@@ -41,6 +45,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
      s.inline = $script
      # Set your repository for previewing by pool
      s.args = ["https://github.com/mookjp/flaskapp.git"]
+     # Set the maximum number of containers runnning at the same time
+     s.args << "5"
   end
      
   config.vm.provider :virtualbox do |v|
