@@ -18,7 +18,7 @@ cd /tmp
 cd /app/docker/pool
 docker build -t pool-server .
 docker run -d -v /var/run/docker.sock:/var/run/docker.sock \
-              --env MAX_CONTAINERS=${MAX_CONTAINERS}
+              --env MAX_CONTAINERS=${MAX_CONTAINERS} \
               --env PREVIEW_REPOSITORY_URL=${PREVIEW_REPOSITORY_URL} \
               --name pool -p 80:80 -p 8080:8080 pool-server
 hostname pool
