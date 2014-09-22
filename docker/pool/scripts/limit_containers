@@ -1,0 +1,9 @@
+#!/bin/sh
+
+MAX_CONTAINERS=$(cat /app/images/max_containers)
+EXPIRED_CONTAINERS=$(docker ps | awk '$NF!="pool"' | tail -n+$(expr 1 + ${MAX_CONTAINERS}) | cut -f1 -d' ')
+
+if [[ ! -z ${EXPIRED_CONTAINERS} ]]; then
+    docker kill ${EXPIRED_CONTAINERS}
+    docker rm ${EXPIRED_CONTAINERS}
+fi
