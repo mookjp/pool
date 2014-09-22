@@ -11,6 +11,12 @@ PREVIEW_REPOSITORY_URL=$1
 export PATH=$PATH:/usr/local/bin
 cd /tmp
 
+# load cache images on local if it exists (for speed to build vagrant)
+IMAGE_APACHE_MOD_MRUBY="/app/images/apache-mod-mruby.tar"
+if [[ -f  ${IMAGE_APACHE_MOD_MRUBY} ]]; then
+    sudo docker load < ${IMAGE_APACHE_MOD_MRUBY} 
+fi
+
 # build build-server
 cd /app/docker/pool
 docker build -t pool-server .
