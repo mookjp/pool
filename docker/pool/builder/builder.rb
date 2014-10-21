@@ -41,8 +41,9 @@ class Builder
     return {
       :url => repository_url,
       :name => name,
+      :container_prefix => container_prefix(name),
       :path => "#{WORK_DIR}/#{name}",
-    }
+    }.freeze
   end
 
   # Initialize application Git repository to clone from remote
@@ -148,7 +149,7 @@ class Builder
     @logger.info @rgit.checkout(@git_commit_id)
 
     @logger.info 'Start building docker image...'
-    build_command = "docker build -t '#{@repository[:name]}/#{@git_commit_id}' #{WORK_DIR}/#{@repository[:name]}"
+    build_command = "docker build -t '#{@repository[:container_prefix]}/#{@git_commit_id}' #{WORK_DIR}/#{@repository[:name]}"
     last_line = ptywrap(build_command)
     image_id = last_line.split(" ")[-1]
     @logger.info "image_id is #{image_id}"
@@ -210,4 +211,7 @@ class Builder
     return 80
   end
 
+  def container_prefix name
+    return name.gsub(/-/, '_')
+  end
 end
