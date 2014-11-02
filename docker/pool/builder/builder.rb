@@ -90,17 +90,22 @@ class Builder
   #
   # TODO: need to set protocol, port and path by the user
   def confirm_running(container_id)
+    ip = get_ip_of_container container_id
     port = get_port_of_container container_id
 
     tried_count = 1
     begin
       @logger.info "Checking application is ready... trying count:#{tried_count}"
-      Net::HTTP.get('0.0.0.0', '/', port)
+      req = Net::HTTP.new(ip, port)
+      res = req.get('/')
+      unless res.kind_of?(Net::HTTPSuccess) or res.kind_of?(Net::HTTPRedirection)
+        raise "Response status is not ready: #{res.code}"
+      end
       @logger.info("Application is ready! forwarding to port #{port}")
       @logger.info 'FINISHED'
       @ws.send 'FINISHED'
     rescue
-      if tried_count <= 10
+      if tried_count <= 30
         sleep 1
         tried_count += 1
         retry
@@ -190,6 +195,16 @@ class Builder
     File.open(id_file, "a") do |file|
       file.write("#{@git_commit_id}/#{image_id}\n")
     end
+  end
+
+  #
+  # Get ip address of Docker container by docker inspect command
+  #
+  # [container_id]
+  #   Docker container id
+  #
+  def get_ip_of_container(container_id)
+    `docker inspect --format '{{ .NetworkSettings.IPAddress }}' #{container_id}`.chomp
   end
 
   #
