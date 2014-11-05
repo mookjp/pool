@@ -20,6 +20,11 @@ if [[ -f  ${IMAGE_APACHE_MOD_MRUBY} ]]; then
     sudo docker load < ${IMAGE_APACHE_MOD_MRUBY} 
 fi
 
+# Add mantainance script to log in to docker
+mkdir -p /app/vendor/scripts
+wget -q https://raw.githubusercontent.com/jpetazzo/nsenter/master/docker-enter -O /app/vendor/scripts/docker-enter
+chmod +x /app/vendor/scripts/docker-enter
+
 # build build-server
 cd /app/docker/pool
 docker build -t pool-server .

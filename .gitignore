@@ -2,7 +2,7 @@
 /images
 dns.log
 
-*/**/vendor
+vendor/*
 */**/out
 .bundle
 *.lock
