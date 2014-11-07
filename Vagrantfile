@@ -6,35 +6,6 @@ VAGRANTFILE_API_VERSION = "2"
 
 $update_channel = "alpha"
 
-$script = <<SCRIPT
-# pass arguments to pool config vars
-PREVIEW_REPOSITORY_URL=$1
-MAX_CONTAINERS=$2
-
-export PATH=$PATH:/usr/local/bin
-cd /tmp
-
-# load cache images on local if it exists (for speed to build vagrant)
-IMAGE_APACHE_MOD_MRUBY="/app/images/apache-mod-mruby.tar"
-if [[ -f  ${IMAGE_APACHE_MOD_MRUBY} ]]; then
-    sudo docker load < ${IMAGE_APACHE_MOD_MRUBY} 
-fi
-
-# Add mantainance script to log in to docker
-mkdir -p /app/vendor/scripts
-wget -q https://raw.githubusercontent.com/jpetazzo/nsenter/master/docker-enter -O /app/vendor/scripts/docker-enter
-chmod +x /app/vendor/scripts/docker-enter
-
-# build build-server
-cd /app/docker/pool
-docker build -t pool-server .
-docker run -d -v /var/run/docker.sock:/var/run/docker.sock \
-              --env MAX_CONTAINERS=${MAX_CONTAINERS} \
-              --env PREVIEW_REPOSITORY_URL=${PREVIEW_REPOSITORY_URL} \
-              --name pool -p 80:80 -p 8080:8080 pool-server
-hostname pool
-SCRIPT
-
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = "coreos-alpha"
   config.vm.box_url = "http://%s.release.core-os.net/amd64-usr/current/coreos_production_vagrant.json" % $update_channel
@@ -53,11 +24,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
               :mount_options   => ['nolock,vers=3,udp']
 
   config.vm.provision "shell" do |s|
-     s.inline = $script
-     # Set your repository for previewing by pool
-     s.args = ["https://github.com/mookjp/flaskapp.git"]
-     # Set the maximum number of containers runnning at the same time
-     s.args << "5"
+    s.path   = "./scripts/init_host_server"
+    # Set your repository for previewing by pool
+    s.args = ["https://github.com/mookjp/flaskapp.git"]
+    # Set the maximum number of containers runnning at the same time
+    s.args << "5"
   end
      
   config.vm.provider :virtualbox do |v|
