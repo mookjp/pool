@@ -10,10 +10,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = "coreos-alpha"
   config.vm.box_url = "http://%s.release.core-os.net/amd64-usr/current/coreos_production_vagrant.json" % $update_channel
 
-  config.vm.provider :vmware_fusion do |vb, override|
-    override.vm.box_url = "http://%s.release.core-os.net/amd64-usr/current/coreos_production_vagrant_vmware_fusion.json" % $update_channel
-  end
-
   config.dns.tld = "dev"
   config.vm.hostname = "pool"
   config.dns.patterns = [/^.*pool.dev$/]
