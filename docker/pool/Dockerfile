@@ -52,5 +52,5 @@ EXPOSE 80 8080
 
 CMD \
     /app/scripts/starter && \
-    tailf /var/log/httpd/error_log
+    tail -F /var/log/httpd/error_log
 
