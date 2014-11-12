@@ -1,0 +1,136 @@
+
+@import (reference) "bootstrap.less";
+@import (reference) "variables.less";
+@import (reference) "mixins.less";
+@import (reference) "gradients.less";
+
+@import url(http://fonts.googleapis.com/css?family=Raleway:500,200);
+@import url(http://fonts.googleapis.com/css?family=Source+Code+Pro:400,600);
+
+@light-blue: #B0D4ED;
+@dark-blue: #008bbd;
+@medium-blue: #729FCC;
+
+@red: #D82525;
+@yellow: #F9EE64;
+@green: #25D825;
+
+@link-color: @light-blue;
+@link-hover-color: darken(@link-color, 15%);
+
+@media (min-width: @screen-md-min) {
+
+html {
+}
+
+body {
+    background: @dark-blue;
+    font-family: 'Raleway', sans-serif;
+    font-weight: 100;
+    font-size: 16px;
+}
+
+footer {
+    padding: 20px;
+}
+
+a {
+    color: @link-color;
+
+    &:hover {
+        color: @link-hover-color;
+        text-decoration: underline;
+    }
+}
+
+.wrapper {
+    height: 740px;
+}
+
+.water {
+    background: url(../images/diagmonds-light.png);
+    height: 600px;
+}
+
+.water-surface {
+    #gradient.vertical(fade(@dark-blue, 10%), @dark-blue);
+    height:600px;
+    //background: fade(@dark-blue, 30%);
+}
+
+.container {
+    width: 900px;
+}
+
+.title {
+    font-size: 100px;
+}
+
+.sub-title {
+    font-size: 20px;
+    font-weight: 200;
+}
+
+.terminal {
+    font-family: "Source Code Pro";
+    height: 600px;
+}
+
+.terminal-header {
+    .border-top-radius(10px);
+    .opacity(0.6);
+
+    background: #888;
+    color: #000;
+    font-weight: 600;
+    height: 30px;
+    margin-top: 20px;
+    padding: 0 8px;
+
+    .window-button {
+        .pull-left();
+        
+        border-radius: 8px;
+        float: left;
+        height: 16px;
+        margin: 7px 6px 0 0;
+        width: 16px;
+    }
+    .close-button {
+        background: @red;
+    }
+    .minimize-button {
+        background: @yellow;
+    }
+    .maximize-button {
+        background: @green;
+    }
+
+    p {
+        .pull-left();
+        margin: 0;
+        font-size: 14px;
+        line-height: 30px;
+        text-align: center;
+        width: 700px;
+    }
+
+}
+
+.terminal-window {
+    textarea {
+        .border-bottom-radius(10px);
+        .opacity(0.6);
+
+        background: #000;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 400;
+        padding: 10px 16px;
+        width: 100%;
+        border-color: #000;
+    }
+}
+
+}
+

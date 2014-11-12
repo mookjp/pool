@@ -1,0 +1,67 @@
+<!doctype html>
+<html class="no-js">
+  <head>
+    <meta charset="utf-8">
+    <title>Building...</title>
+    <meta name="description" content="Build screen of pool">
+    <meta name="viewport" content="width=device-width">
+    <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+    <!-- build:css(.) styles/vendor.css -->
+    <!-- bower:css -->
+    <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" />
+    <!-- endbower -->
+    <!-- endbuild -->
+    <!-- build:css(.tmp) styles/main.css -->
+    <link rel="stylesheet" href="css/main.css">
+    <!-- endbuild -->
+  </head>
+  <body>
+    <!--[if lt IE 10]>
+      <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+      <![endif]-->
+      <div class="wrapper">
+          <div class="water">
+              <div class="water-surface">
+                  <div class="container center-block">
+                      <div class="row text-center">
+                          <h1 class="title">pool</h1>
+                          <h2 class="sub-title">Oops! we have no container for `<span class="commit-id"></span>`. Going to build new one ...</h2>
+                      </div>
+                      <div class="row">
+                          <div class="col-md-12 terminal">
+                              <div class="terminal-header center-block">
+                                  <div class="window-button close-button"></div>
+                                  <div class="window-button minimize-button"></div>
+                                  <div class="window-button maximize-button"></div>
+                                  <p class="center-block">Building container for <span class="commit-id"></span> ...</p>
+                              </div>
+                              <div class="terminal-window center-block clearfix">
+                                  <form>
+                                      <textarea class="log-console" rows="24">pool$ build</textarea>
+                                  </form>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+
+              <!-- water end -->
+          </div>
+          <!-- wrapper end -->
+      </div>
+
+    <footer>
+    <p class="text-center">pool is under prototype-version now. Check on <a href="https://github.com/mookjp/pool">github</a>.</p>
+    </footer>
+
+    <!-- build:js(.) scripts/vendor.js -->
+    <!-- bower:js -->
+    <script src="bower_components/jquery/dist/jquery.js"></script>
+    <!-- endbower -->
+    <!-- endbuild -->
+
+    <!-- build:js({app,.tmp}) scripts/main.js -->
+    <script src="scripts/main.js"></script>
+    <!-- endbuild -->
+</body>
+</html>
