@@ -38,14 +38,13 @@ ADD provisioning/supervisord.conf /etc/supervisord.conf
 ADD provisioning/cron/limit_containers /etc/cron.d/limit_containers
 
 # Install build-srver
-#ADD builder /app/builder
-RUN git clone https://github.com/mookjp/pool-builder
-WORKDIR /tmp/pool-builder
-RUN /usr/local/bin/gem install bundler
+ADD builder /tmp/builder
+WORKDIR /tmp/builder
 RUN /usr/local/bin/gem build builder.gemspec
-RUN gem install builder-0.0.1.gem
+RUN /usr/local/bin/gem install builder-0.0.1.gem
 
 ADD handlers /app/handlers
+RUN mkdir -p /app/handlers/resources
 
 # Install build-screen
 ADD build-screen /tmp/build-screen
