@@ -9,7 +9,13 @@ RUN export PATH=$PATH:/usr/local/bin
 RUN cp /usr/share/zoneinfo/Japan /etc/localtime
 
 # Install required packages
-RUN yum install -y docker-io git supervisor cronie
+RUN yum install -y docker-io
+RUN yum install -y git
+RUN yum install -y supervisor
+RUN yum install -y cronie
+# For build-screen
+RUN yum install -y npm
+RUN yum install -y bzip2
 
 # Install required gems
 RUN /usr/local/bin/gem install git --no-document
@@ -38,9 +44,18 @@ WORKDIR /tmp/pool-builder
 RUN /usr/local/bin/gem install bundler
 RUN /usr/local/bin/gem build builder.gemspec
 RUN gem install builder-0.0.1.gem
-WORKDIR /tmp
 
 ADD handlers /app/handlers
+
+# Install build-screen
+ADD build-screen /tmp/build-screen
+WORKDIR /tmp/build-screen
+RUN npm install
+RUN git config --global url.https://.insteadOf git://
+RUN $(npm bin)/bower --allow-root install
+RUN $(npm bin)/grunt build
+RUN mv /tmp/build-screen/dist /app/handlers/resources/build-screen
+
 ADD scripts /app/scripts
 
 RUN chmod +x /app/scripts/starter
