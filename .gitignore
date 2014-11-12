@@ -6,3 +6,9 @@ vendor/*
 */**/out
 .bundle
 *.lock
+
+# For Grunt project
+**/node_modules
+**/dist
+**/.tmp
+**/bower_components
