@@ -9,7 +9,6 @@ RUN export PATH=$PATH:/usr/local/bin
 RUN cp /usr/share/zoneinfo/Japan /etc/localtime
 
 # Install required packages
-RUN yum install -y docker-io git supervisor cronie
 RUN yum install -y docker-io
 RUN yum install -y git
 RUN yum install -y supervisor
