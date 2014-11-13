@@ -2,9 +2,21 @@
 /images
 dns.log
 
-vendor/*
-*/**/out
-.bundle
+# For Gem project
+**/.bundle/
+**/coverage/
+**/doc/
+**/out/
+**/pkg/
+**/tmp/
+**/vendor/
+**/spec/reports/
+*.bundle
+*.so
+*.o
+*.a
+mkmf.log
+
 *.lock
 
 # For Grunt project
