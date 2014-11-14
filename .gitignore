@@ -24,3 +24,6 @@ mkmf.log
 **/dist
 **/.tmp
 **/bower_components
+
+# pyenv file for use of wercker-cli
+.python-version
