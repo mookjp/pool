@@ -1,6 +1,8 @@
 🐳 pool 🐳
 ===
 
+[![wercker status](https://app.wercker.com/status/2581a9ed9a58b4a95dadc2a33b639d83/m "wercker status")](https://app.wercker.com/project/bykey/2581a9ed9a58b4a95dadc2a33b639d83)
+
 The simplest proxy service to access your Dockerized webapps by Git commit-id.
 
 <p align="center">
