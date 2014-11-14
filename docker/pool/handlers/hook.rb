@@ -80,6 +80,6 @@ else
   addr = get_addr_of_container(container_id)
   port = get_port_of_container(container_id)
   r = Apache::Request.new()
-  r.reverse_proxy "http://#{addr}:#{port}" + r.unparsed_uri
+  r.reverse_proxy "http://#{addr}:#{port}" + r.uri
   Apache::return(Apache::OK)
 end
