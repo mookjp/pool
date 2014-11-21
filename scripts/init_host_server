@@ -2,8 +2,9 @@
 # Setup script for pool host
 
 # pass arguments to pool config vars
-PREVIEW_REPOSITORY_URL=$1
-MAX_CONTAINERS=$2
+PREVIEW_REPOSITORY_URL=${1:-https://github.com/mookjp/flaskapp.git}
+MAX_CONTAINERS=${2:-5}
+POOL_BASE_DOMAIN=${3:-pool.dev}
 
 export PATH=$PATH:/usr/local/bin
 cd /tmp
@@ -25,5 +26,6 @@ docker build -t pool-server .
 docker run -d -v /var/run/docker.sock:/var/run/docker.sock \
               --env MAX_CONTAINERS=${MAX_CONTAINERS} \
               --env PREVIEW_REPOSITORY_URL=${PREVIEW_REPOSITORY_URL} \
+              --env POOL_BASE_DOMAIN=${POOL_BASE_DOMAIN} \
               --name pool -p 80:80 -p 8080:8080 pool-server
 hostname pool

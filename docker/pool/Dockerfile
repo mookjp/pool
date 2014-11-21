@@ -69,6 +69,7 @@ RUN touch /app/images/ids
 # Set target preview repository
 ENV PREVIEW_REPOSITORY_URL https://github.com/mookjp/flaskapp.git
 ENV MAX_CONTAINERS 10
+ENV POOL_BASE_DOMAIN pool.dev
 
 EXPOSE 80 8080
 
