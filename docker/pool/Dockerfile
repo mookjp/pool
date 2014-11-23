@@ -18,35 +18,38 @@ RUN yum install -y npm
 RUN yum install -y bzip2
 
 # Install required gems
-RUN /usr/local/bin/gem install git --no-document
-RUN /usr/local/bin/gem install em-websocket --no-document
+RUN /usr/local/bin/gem install --no-document bundler
 
 # hostname settings
 ADD provisioning/network /etc/sysconfig/network
 ADD provisioning/hosts /etc/sysconfig/hosts
 
-# Apache settings
+# Add Apache settings
 ADD provisioning/httpd.conf /etc/httpd/conf/httpd.conf
 ADD provisioning/mruby.conf /etc/httpd/conf.d/mruby.conf
-
-# Add apache to docker group to access docker sockfile
-RUN usermod -G docker apache
 
 # Add supervisor configuration file
 ADD provisioning/supervisord.conf /etc/supervisord.conf
 
+# Add container-limitation configuration gile
 ADD provisioning/cron/limit_containers /etc/cron.d/limit_containers
 
 # Install build-srver
 ADD builder /tmp/builder
 WORKDIR /tmp/builder
+# Remove vendor to remove unrelated dependencies
+RUN rm -rf vendor
+RUN /opt/ruby-2.1.2/bin/bundle install --path=vendor/bundle
+# Test builder
+RUN /opt/ruby-2.1.2/bin/bundle exec rake spec
 RUN /usr/local/bin/gem build builder.gemspec
 RUN /usr/local/bin/gem install builder-0.0.1.gem
 
+# Add mod_mruby handler to manage request
 ADD handlers /app/handlers
-RUN mkdir -p /app/handlers/resources
 
 # Install build-screen
+RUN mkdir -p /app/handlers/resources
 ADD build-screen /tmp/build-screen
 WORKDIR /tmp/build-screen
 RUN npm install
@@ -55,8 +58,8 @@ RUN $(npm bin)/bower --allow-root install
 RUN $(npm bin)/grunt build
 RUN mv /tmp/build-screen/dist /app/handlers/resources/build-screen
 
+# Add util scripts for handling containers
 ADD scripts /app/scripts
-
 RUN chmod +x /app/scripts/starter
 RUN chmod +x /app/scripts/limit_containers
 
@@ -65,6 +68,14 @@ RUN mkdir -p /var/log/supervisor
 RUN mkdir -p /var/log/builder
 RUN mkdir -p /app/images
 RUN touch /app/images/ids
+
+# Add apache to pool and docker group to access /app
+# as hook.rb has to access application's repository in it
+# and to access docker sock file
+RUN groupadd pool
+RUN usermod -G docker,pool apache
+RUN chgrp --recursive pool /app
+RUN chmod --recursive g+rwx /app
 
 # Set target preview repository
 ENV PREVIEW_REPOSITORY_URL https://github.com/mookjp/flaskapp.git

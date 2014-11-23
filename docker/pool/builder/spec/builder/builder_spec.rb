@@ -41,7 +41,7 @@ describe '.new' do
         logger = Logger.new(Builder::BuilderLogDevice.new(mock_ws, log_file))
 
         # execute
-        b = Builder::Builder.new('master', logger, @output_dir_path)
+        b = Builder::Builder.new(mock_ws, 'master', @output_dir_path)
 
     end
 end
