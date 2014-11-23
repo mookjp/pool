@@ -1,7 +1,6 @@
 # LogDevice to write log to a file and send it through EM:WebSocket at once.
 module Builder
   class BuilderLogDevice
-
     @logfile = nil
     @ws = nil
 
@@ -18,12 +17,16 @@ module Builder
     # write and send to client the log message
     def write(message)
       @logfile.write(message) unless @logfile.nil?
-      @ws.send(message)
+      @ws.send(strip_ansi_color(message))
     end
 
     # Close file object
     def close
       @logfile.close
+    end
+
+    def strip_ansi_color(message)
+      message.gsub(/\e\[[^m]*m/, '')
     end
   end
 end
