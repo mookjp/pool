@@ -24,6 +24,7 @@ mkmf.log
 **/dist
 **/.tmp
 **/bower_components
+**/app/styles/*.css
 
 # pyenv file for use of wercker-cli
 .python-version
