@@ -28,7 +28,9 @@ module Builder
                    work_dir = '/app/images',
                    log_file = "#{work_dir}/builder.log",
                    id_file = "#{work_dir}/ids",
-                   repository_conf = "#{work_dir}/preview_target_repository")
+                   repository_conf = "#{work_dir}/preview_target_repository",
+                   base_domain_file = "#{work_dir}/base_domain"
+                  )
 
       @work_dir = work_dir
       create_dirs
@@ -37,6 +39,7 @@ module Builder
       @repository_conf = repository_conf
       @git_commit_id = git_commit_id
       @repository = read_repository_info
+      @base_domain = read_base_domain(base_domain_file)
 
       @ws = ws
       @logger = Logger.new(BuilderLogDevice.new(ws, "#{log_file}"))
@@ -143,14 +146,13 @@ module Builder
               raise RuntimeError,
                 "Docker build has not finished successfully, see #{@log_file}"\
                 unless status.exitstatus.eql? 0
-              end
             end
-          rescue Errno::EIO
-          end
         end
-
-        last_line
+        rescue Errno::EIO
+        end
       end
+      last_line
+    end
 
       #
       # Build Docker image from Git commit id.
@@ -182,12 +184,20 @@ module Builder
       #
       def run(image_id)
         @logger.info 'Start running container...'
-        container_id = `docker run -P -d #{image_id}`.chomp
+        container_id = `docker run -P -e POOL_HOSTNAME=#{pool_hostname} -d #{image_id}`.chomp
 
         is_running = `docker inspect --format='{{.State.Running}}' #{container_id}`
         raise RuntimeError, 'Could not start running container.' if is_running.eql? 'false'
 
         container_id
+      end
+
+      def read_base_domain base_domain_file
+        File.open(base_domain_file).gets.chomp
+      end
+
+      def pool_hostname
+        [@git_commit_id, @base_domain].join(".")
       end
 
       #
@@ -239,5 +249,5 @@ module Builder
       def container_prefix name
         return name.gsub(/-/, '_').downcase
       end
-    end
   end
+end

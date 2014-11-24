@@ -10,8 +10,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = "coreos-alpha"
   config.vm.box_url = "http://%s.release.core-os.net/amd64-usr/current/coreos_production_vagrant.json" % $update_channel
 
-  config.dns.tld = "dev"
-  config.vm.hostname = "pool"
+  pool_hostname = "pool"
+  pool_tld = "dev"
+
+  config.vm.hostname  = pool_hostname
+  config.dns.tld      = pool_tld
   config.dns.patterns = [/^.*pool.dev$/]
 
   config.vm.network "private_network", ip: "192.168.20.10"
@@ -25,6 +28,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     s.args = ["https://github.com/mookjp/flaskapp.git"]
     # Set the maximum number of containers runnning at the same time
     s.args << "5"
+    # Set POOL_BASE_DOMAIN
+    s.args << [pool_hostname, pool_tld].join(".")
   end
      
   config.vm.provider :virtualbox do |v|
