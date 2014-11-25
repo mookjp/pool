@@ -10,3 +10,10 @@ build:
     - script:
         name: docker build
         code: docker build -t pool ./pool/docker/pool
+  after-steps:
+    - sherzberg/slack-notify:
+        subdomain: pool-preview
+        token: $SLACK_TOKEN
+        channel: "#general"
+        username: wercker
+        icon_url: https://avatars3.githubusercontent.com/u/1695193?s=140
