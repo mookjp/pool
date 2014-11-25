@@ -2,14 +2,21 @@
 # -*- mode: ruby -*-
 
 require 'em-websocket'
+require 'git'
 require 'pty'
+
 require 'builder'
+
+WORK_DIR = "/app/images"
+APP_REPO_DIR = "#{WORK_DIR}/app_repo"
 
 EM.run {
   EM::WebSocket.run(:host => '0.0.0.0', :port => 8080) do |ws|
     ws.onopen { |handshake|
       puts 'WebSocket connection open'
-      @git_commit_id = handshake.headers['Host'].split('.')[0]
+      target = handshake.headers['Host'].split('.')[0]
+      git = Git::open(APP_REPO_DIR)
+      @git_commit_id = git.revparse(target)
 
       Thread.new(ws) do |ws|
         begin
