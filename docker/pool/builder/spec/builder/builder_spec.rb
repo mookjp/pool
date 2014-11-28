@@ -33,6 +33,14 @@ describe '.new' do
             File.expand_path('preview_target_repository', @output_dir_path)
         File.copy_stream(fixture_repository_file_path, tmp_repository_file_path)
 
+        # create base_domain file
+        fixture_base_domain_file_path =
+            File.expand_path('base_domain', fixture_dir)
+        tmp_base_domain_file_path =
+            File.expand_path('base_domain', @output_dir_path)
+        File.copy_stream(fixture_base_domain_file_path,
+                         tmp_base_domain_file_path)
+
         # create WebSocket mock
         mock_ws = Object.new
         allow(mock_ws).to receive(:nil?) {false}
@@ -41,7 +49,7 @@ describe '.new' do
         logger = Logger.new(Builder::BuilderLogDevice.new(mock_ws, log_file))
 
         # execute
-        b = Builder::Builder.new('master', logger, @output_dir_path)
+        b = Builder::Builder.new(mock_ws, 'master', @output_dir_path)
 
     end
 end

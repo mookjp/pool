@@ -1,6 +1,9 @@
 # hook to build and run Docker container
+# TODO: Replace back quote; Karnel.` to Process to wait and kill processes
 
 WORK_DIR = "/app/images"
+APP_REPO_DIR = "#{WORK_DIR}/app_repo"
+REPOSITORY_CONF = "#{WORK_DIR}/preview_target_repository"
 ID_FILE = "#{WORK_DIR}/ids"
 
 #
@@ -62,24 +65,52 @@ def get_container_id(commit_id, id_file = ID_FILE)
   return nil
 end
 
-`mkdir -p #{WORK_DIR}` unless FileTest.exist?(WORK_DIR)
-File.new(ID_FILE, "w") unless FileTest.exist?(ID_FILE)
-
-hin = Apache::Headers_in.new
-target_commit_id = hin["Host"].split(".")[0]
-
-container_id = get_container_id(target_commit_id)
-
-if container_id == nil
+# return build-screen to show Docker's build log
+def return_build_screen
   r = Apache::Request.new
   Apache.errlogger Apache::APLOG_NOTICE, \
     "#{r.uri}, #{r.path_info}, #{r.args}, #{r.protocol}, #{r.the_request}"
   r.filename= "/app/handlers/resources/build-screen/" + r.uri
-  Apache::return(Apache::OK)
-else
+  return Apache::return(Apache::OK)
+end
+
+# Forward to container
+def forward_to_container(container_id)
   addr = get_addr_of_container(container_id)
   port = get_port_of_container(container_id)
   r = Apache::Request.new()
   r.reverse_proxy "http://#{addr}:#{port}" + r.uri
-  Apache::return(Apache::OK)
+  return Apache::return(Apache::OK)
+end
+
+#`mkdir -p #{APP_REPO_DIR}` unless FileTest.exist?(APP_REPO_DIR)
+# Create id-file to log git-commit-id and container-id
+File.new(ID_FILE, "w") unless FileTest.exist?(ID_FILE)
+
+# Get target name like git-commit-id or branch name from subdomain
+# then use `git rev-parse` to get actual commit id
+hin = Apache::Headers_in.new
+target = hin["Host"].split(".")[0]
+
+# Move to the repository directory if there is.
+# Or clone it by url read from git_repository_conf file.
+unless FileTest.exist?(APP_REPO_DIR)
+  repository_url = File.open(REPOSITORY_CONF).gets.chomp
+  `git clone #{repository_url} #{APP_REPO_DIR}`
+  return Apache::return(Apache::HTTP_BAD_REQUEST) \
+    unless FileTest.exist?(APP_REPO_DIR)
+end
+
+target_commit_id = `git --git-dir=#{APP_REPO_DIR}/.git rev-parse #{target}`.chomp
+Apache.errlogger Apache::APLOG_NOTICE, \
+  "target: #{target}, target_commit_id: #{target_commit_id}"
+# There is the target commit in repository or having not been initialized as
+# Git repository, return bad request response
+Apache::return(Apache::HTTP_BAD_REQUEST) unless `echo $?`.chomp == '0'
+
+container_id = get_container_id(target_commit_id)
+if container_id == nil
+  return_build_screen
+else
+  forward_to_container(container_id)
 end

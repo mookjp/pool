@@ -26,19 +26,23 @@ module Builder
     def initialize(ws,
                    git_commit_id,
                    work_dir = '/app/images',
+                   app_repo_dir_name = 'app_repo',
                    log_file = "#{work_dir}/builder.log",
                    id_file = "#{work_dir}/ids",
                    repository_conf = "#{work_dir}/preview_target_repository",
                    base_domain_file = "#{work_dir}/base_domain"
                   )
 
+      # Create work directory if it has not been created yet
+      FileUtils.mkdir_p(work_dir) unless File.exist?(work_dir)
+
       @work_dir = work_dir
-      create_dirs
+      @repository = create_repository_config(repository_conf,
+                                             work_dir,
+                                             app_repo_dir_name)
 
       @id_file = id_file
-      @repository_conf = repository_conf
       @git_commit_id = git_commit_id
-      @repository = read_repository_info
       @base_domain = read_base_domain(base_domain_file)
 
       @ws = ws
@@ -49,15 +53,26 @@ module Builder
       init_repo
     end
 
-    # load preview target repository info from config file
-    def read_repository_info
-      repository_url = File.open(@repository_conf).gets.chomp
-      name = repository_url.split("/").last.split(".").first
+    # Create objects which has infomation of app
+    #
+    # [repository_conf]
+    #   repository_conf file which has repository's URL
+    # [work_dir]
+    #   Path of working directory
+    # [app_repo_dir_name]
+    #   The name of directory of application repository; This should be fixed
+    #   value as pool only supports one application and it fetches changes
+    #   inside repository directory.
+    def create_repository_config(repository_conf,
+                          work_dir,
+                          app_repo_dir_name)
+      repository_url = File.open(repository_conf).gets.chomp
+      name = repository_url.split("/").last.split(".git").first
       return {
         :url => repository_url,
         :name => name,
+        :path => "#{work_dir}/#{app_repo_dir_name}",
         :container_prefix => container_prefix(name),
-        :path => "#{@work_dir}/#{name}",
       }.freeze
     end
 
@@ -73,15 +88,12 @@ module Builder
       else
         @logger.info "repository path doesn't exist: #{@repository[:path]}"
         # Create LogDevice to log to websocket message
-        @rgit = Git.clone(@repository[:url], @repository[:name],
+        app_repository_name = @repository[:path].split('/').last
+        @rgit = Git.clone(@repository[:url],
+                          app_repository_name,
                           :path => @work_dir,
                           :log => @logger)
       end
-    end
-
-    # Create required directory if it has not been created yet
-    def create_dirs
-      FileUtils.mkdir_p(@work_dir) unless File.exist?(@work_dir)
     end
 
     # Build Docker image and run it as a container.
@@ -166,7 +178,7 @@ module Builder
         @logger.info @rgit.checkout(@git_commit_id)
 
         @logger.info 'Start building docker image...'
-        build_command = "docker build -t '#{@repository[:container_prefix]}/#{@git_commit_id}' #{@work_dir}/#{@repository[:name]}"
+        build_command = "docker build -t '#{@repository[:container_prefix]}/#{@git_commit_id}' #{@repository[:path]}"
         last_line = ptywrap(build_command)
         image_id = last_line.split(" ")[-1]
         @logger.info "image_id is #{image_id}"
