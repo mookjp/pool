@@ -1,4 +1,14 @@
-- name: Install Docker on Rax Server
+---
+- name: Install Docker on Ubuntu
   hosts: all
   roles:
     - angstwad.docker_ubuntu
+    #- geerlingguy.git
+- name: Checkout pool from github
+  hosts: all
+  tasks:
+    - git: repo=https://github.com/mookjp/pool dest=/tmp/pool
+      #- name: Build container
+      #  hosts: all
+      #  tasks:
+      #    - 
