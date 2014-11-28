@@ -1,0 +1,4 @@
+- name: Install Docker on Rax Server
+  hosts: all
+  roles:
+    - angstwad.docker_ubuntu
