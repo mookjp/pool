@@ -2,12 +2,18 @@
 
 # setup private key if exists
 GITHUB_PRIVATE_KEY="/app/keys/id_rsa"
-SSH_DIR="/root/.ssh"
+APACHE_SSH_DIR="/var/www/.ssh"
+ROOT_SSH_DIR="/root/.ssh"
 
 if [ -f ${GITHUB_PRIVATE_KEY} ]; then
     mkdir -p 644 ${SSH_DIR}
-    cp ${GITHUB_PRIVATE_KEY} ${SSH_DIR}/
-    chmod 600 ${SSH_DIR}/$(basename ${GITHUB_PRIVATE_KEY})
+
+    cp ${GITHUB_PRIVATE_KEY} ${APACHE_SSH_DIR}/
+    chmod 600 ${APACHE_SSH_DIR}/$(basename ${GITHUB_PRIVATE_KEY})
+    chown apache. ${APACHE_SSH_DIR}/$(basename ${GITHUB_PRIVATE_KEY})
+
+    cp ${GITHUB_PRIVATE_KEY} ${ROOT_SSH_DIR}/
+    chmod 600 ${ROOT_SSH_DIR}/$(basename ${GITHUB_PRIVATE_KEY})
 fi
 
 # setup pool variables

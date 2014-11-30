@@ -68,7 +68,12 @@ RUN mkdir -p /app/images
 RUN touch /app/images/ids
 
 # Add private key directory to clone repository
+RUN mkdir -p /root/.ssh
+RUN mkdir -p /var/www/.ssh
 ADD keys /app/keys
+ADD /provisioning/ssh_config /var/www/.ssh/config
+ADD /provisioning/ssh_config /root/.ssh/config
+RUN chown -R apache. /var/www/.ssh
 
 # Add apache to pool and docker group to access /app
 # as hook.rb has to access application's repository in it
