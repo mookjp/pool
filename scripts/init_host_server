@@ -9,6 +9,14 @@ POOL_BASE_DOMAIN=${3:-pool.dev}
 export PATH=$PATH:/usr/local/bin
 cd /tmp
 
+# Restart docker with remote API
+cp /app/provisioning/docker-tcp.socket /etc/systemd/system/docker-tcp.socket
+systemctl enable docker-tcp.socket
+sudo systemctl enable docker-tcp.socket
+sudo systemctl stop docker
+sudo systemctl start docker-tcp.socket
+sudo systemctl start docker
+
 # load cache images on local if it exists (for speed to build vagrant)
 IMAGE_APACHE_MOD_MRUBY="/app/images/apache-mod-mruby.tar"
 if [[ -f  ${IMAGE_APACHE_MOD_MRUBY} ]]; then
