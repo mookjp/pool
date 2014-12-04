@@ -1,7 +1,7 @@
 (function () {
     showCommitId();
 
-    var ws = new WebSocket("ws://" + document.location.hostname + ":8080");
+    var ws = new WebSocket("ws://" + document.location.hostname + ":443");
     ws.onmessage = function(event){
         if (event.data.match(/FINISHED$/)) {
             document.location.reload();
