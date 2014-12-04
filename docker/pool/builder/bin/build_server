@@ -2,25 +2,17 @@
 # -*- mode: ruby -*-
 
 require 'em-websocket'
-require 'git'
-require 'pty'
-
 require 'builder'
-
-WORK_DIR = "/app/images"
-APP_REPO_DIR = "#{WORK_DIR}/app_repo"
 
 EM.run {
   EM::WebSocket.run(:host => '0.0.0.0', :port => 8080) do |ws|
     ws.onopen { |handshake|
       puts 'WebSocket connection open'
       target = handshake.headers['Host'].split('.')[0]
-      git = Git::open(APP_REPO_DIR)
-      @git_commit_id = git.revparse(target)
 
       Thread.new(ws) do |ws|
         begin
-          builder = Builder::Builder.new(ws, @git_commit_id)
+          builder = Builder::Builder.new(ws, target)
           builder.up
         rescue => ex
           puts "#{ex.class}: #{ex.message}; #{ex.backtrace}"
@@ -36,4 +28,8 @@ EM.run {
       ws.send "Pong: #{msg}"
     }
   end
+  
+  # GET "http://0.0.0.0:9000/resolve_git_commit/origin/development",
+  # then it responses commit-id of "origin/development"
+  EM::start_server("0.0.0.0", 9000, Builder::GitHandler)
 }

@@ -18,7 +18,9 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
 
+  spec.add_runtime_dependency "eventmachine"
   spec.add_runtime_dependency "em-websocket"
+  spec.add_runtime_dependency "eventmachine_httpserver"
   spec.add_runtime_dependency "git"
 
   spec.add_development_dependency "bundler"
