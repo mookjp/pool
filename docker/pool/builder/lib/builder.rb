@@ -259,6 +259,7 @@ module Builder
       end
 
       def container_prefix name
+	name << '_' while name.size < 4
         return name.gsub(/-/, '_').downcase
       end
   end
