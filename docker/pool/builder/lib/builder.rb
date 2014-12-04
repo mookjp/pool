@@ -3,12 +3,36 @@ require 'net/http'
 require 'logger'
 
 require 'git'
+require 'pty'
 
 require 'builder/builder_log_device'
+require 'builder/git_handler'
 
 module Builder
-  class Builder
+  WORK_DIR = "/app/images"
+  APP_REPO_DIR_NAME = "app_repo"
 
+  module_function
+  def resolve_commit_id(git_commit_specifier, opts = {})
+    git_base = opts[:git_base] || Git.open("#{WORK_DIR}/#{APP_REPO_DIR_NAME}")
+
+    begin
+      commit_id = git_base.revparse(git_commit_specifier)
+    rescue => e
+      if e.message =~ /unknown revision or path not in the working tree/
+        remote_branches = git_base.branches.remote.reject{|n| n.name =~ /^HEAD/}
+        matched_branches = remote_branches.select{|n| n.name =~ /#{git_commit_specifier}/}
+        raise e if matched_branches.size == 0
+        commit_id = git_base.revparse(matched_branches.first.full)
+      else
+        raise e
+      end
+    end
+    return commit_id
+  end
+
+  class Builder
+    include ::Builder
     #
     # Initialize method
     # [ws]
@@ -24,9 +48,9 @@ module Builder
     # [repository_conf]
     #   File to store repository url
     def initialize(ws,
-                   git_commit_id,
-                   work_dir = '/app/images',
-                   app_repo_dir_name = 'app_repo',
+                   git_commit_specifier,
+                   work_dir = WORK_DIR,
+                   app_repo_dir_name = APP_REPO_DIR_NAME,
                    log_file = "#{work_dir}/builder.log",
                    id_file = "#{work_dir}/ids",
                    repository_conf = "#{work_dir}/preview_target_repository",
@@ -41,17 +65,17 @@ module Builder
                                              work_dir,
                                              app_repo_dir_name)
 
-      @id_file = id_file
-      @git_commit_id = git_commit_id
-      @base_domain = read_base_domain(base_domain_file)
-
       @ws = ws
       @logger = Logger.new(BuilderLogDevice.new(ws, "#{log_file}"))
       @logger.info "Initialized. Git commit id: #{@git_commit_id}"
-
       # Initialize Git repository and set @rgit instance
       init_repo
+
+      @id_file = id_file
+      @git_commit_id = resolve_commit_id(git_commit_specifier, :git_base => @rgit)
+      @base_domain = read_base_domain(base_domain_file)
     end
+
 
     # Create objects which has infomation of app
     #
@@ -262,4 +286,5 @@ module Builder
         return name.gsub(/-/, '_').downcase
       end
   end
+
 end

@@ -101,7 +101,7 @@ unless FileTest.exist?(APP_REPO_DIR)
     unless FileTest.exist?(APP_REPO_DIR)
 end
 
-target_commit_id = `git --git-dir=#{APP_REPO_DIR}/.git rev-parse #{target}`.chomp
+target_commit_id = `curl http://0.0.0.0:9000/resolve_git_commit/#{target}`.chomp
 Apache.errlogger Apache::APLOG_NOTICE, \
   "target: #{target}, target_commit_id: #{target_commit_id}"
 # There is the target commit in repository or having not been initialized as
