@@ -35,9 +35,14 @@ ADD provisioning/supervisord.conf /etc/supervisord.conf
 ADD provisioning/cron/limit_containers /etc/cron.d/limit_containers
 
 # Install build-srver
-ADD builder /tmp/builder
+# Use cache if Gemfile.lock is not updated
+ADD builder /tmp/builder-tmp
+ADD builder/Gemfile.lock /tmp/builder/Gemfile.lock
 WORKDIR /tmp/builder
+RUN cp /tmp/builder-tmp/Gemfile /tmp/builder
+RUN cp /tmp/builder-tmp/builder.gemspec /tmp/builder
 RUN /opt/ruby-2.1.2/bin/bundle install --path=vendor/bundle
+RUN cp -a /tmp/builder-tmp /tmp/builder
 # Test builder
 RUN /opt/ruby-2.1.2/bin/bundle exec rake spec
 RUN /usr/local/bin/gem build builder.gemspec
@@ -48,11 +53,16 @@ ADD handlers /app/handlers
 
 # Install build-screen
 RUN mkdir -p /app/handlers/resources
-ADD build-screen /tmp/build-screen
+# Use cache if packages.json is not updated
+ADD build-screen/package.json /tmp/build-screen/package.json
 WORKDIR /tmp/build-screen
 RUN npm install
+# Use cache if bower.json is not updated
+ADD build-screen/bower.json /tmp/build-screen/bower.json
 RUN git config --global url.https://.insteadOf git://
 RUN $(npm bin)/bower --allow-root install
+ADD build-screen /tmp/build-screen-tmp
+RUN cp -nr /tmp/build-screen-tmp/* /tmp/build-screen
 RUN $(npm bin)/grunt build
 RUN mv /tmp/build-screen/dist /app/handlers/resources/build-screen
 
