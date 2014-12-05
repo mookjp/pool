@@ -1,5 +1,20 @@
 #!/bin/sh
 
+# setup private key if exists
+GITHUB_PRIVATE_KEY="/app/keys/id_rsa"
+APACHE_SSH_DIR="/var/www/.ssh"
+ROOT_SSH_DIR="/root/.ssh"
+
+if [ -f ${GITHUB_PRIVATE_KEY} ]; then
+    cp ${GITHUB_PRIVATE_KEY} ${APACHE_SSH_DIR}/
+    chmod 600 ${APACHE_SSH_DIR}/$(basename ${GITHUB_PRIVATE_KEY})
+    chown apache. ${APACHE_SSH_DIR}/$(basename ${GITHUB_PRIVATE_KEY})
+
+    cp ${GITHUB_PRIVATE_KEY} ${ROOT_SSH_DIR}/
+    chmod 600 ${ROOT_SSH_DIR}/$(basename ${GITHUB_PRIVATE_KEY})
+fi
+
+# setup pool variables
 echo -n ${PREVIEW_REPOSITORY_URL} > /app/images/preview_target_repository
 echo -n ${MAX_CONTAINERS} > /app/images/max_containers
 echo -n ${POOL_BASE_DOMAIN} > /app/images/base_domain

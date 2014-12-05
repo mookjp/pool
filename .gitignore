@@ -6,6 +6,9 @@ dns.log
 tags
 **/tags
 
+# For private key to clone repository
+/docker/pool/keys/
+
 # For Gem project
 **/.bundle/
 **/coverage/
