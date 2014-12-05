@@ -109,6 +109,8 @@ Apache.errlogger Apache::APLOG_NOTICE, \
 Apache::return(Apache::HTTP_BAD_REQUEST) unless `echo $?`.chomp == '0'
 
 container_id = get_container_id(target_commit_id)
+Apache.errlogger Apache::APLOG_NOTICE, \
+  "get_container_id: #{container_id}"
 if container_id == nil
   return_build_screen
 else
