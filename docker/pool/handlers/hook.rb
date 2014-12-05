@@ -70,7 +70,10 @@ def return_build_screen
   r = Apache::Request.new
   Apache.errlogger Apache::APLOG_NOTICE, \
     "#{r.uri}, #{r.path_info}, #{r.args}, #{r.protocol}, #{r.the_request}"
-  r.filename= "/app/handlers/resources/build-screen/" + r.uri
+  # TODO: Fix build-screen
+  r.filename = "/app/handlers/resources/build-screen/" + r.uri
+  r.filename = "/app/handlers/resources/build-screen/" + r.uri if r.uri =~ /^\/styles/ or r.uri =~ /^\/scripts/ or r.uri =~ /^\/images/
+
   return Apache::return(Apache::OK)
 end
 
