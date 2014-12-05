@@ -5,8 +5,5 @@ build:
         name: docker version
         code: docker -v
     - script:
-        name: clone project
-        code: git clone https://github.com/mookjp/pool
-    - script:
         name: docker build
-        code: docker build -t pool ./pool/docker/pool
+        code: docker build -t pool ./docker/pool
