@@ -3,7 +3,6 @@ require 'net/http'
 require 'logger'
 
 require 'git'
-require 'pty'
 
 require 'builder/builder_log_device'
 require 'builder/git_handler'
