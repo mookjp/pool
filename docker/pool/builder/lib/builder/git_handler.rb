@@ -9,7 +9,7 @@ module Builder
     
     def initialize(*args)
       super
-      @logger = Logger.new(STDOUT)
+      @logger ||= Logger.new(STDOUT)
       @logger.info("GitHandler logger is initialized.")
       @logger.info([WORK_DIR, APP_REPO_DIR_NAME].join(","))
       @repo_config = {
@@ -24,10 +24,13 @@ module Builder
 
       if @http_path_info =~ /^\/resolve_git_commit\/(.*)$/
         res.status = 200
+        @logger.info "resolve git commit is called"
         begin
           res.content = resolve_commit_id($1)
+          @logger.info "resolve_commit_id: #{res.content}"
           return res.send_response
         rescue => e
+          @logger.info e
           res.content = e
         end
       end
@@ -36,7 +39,11 @@ module Builder
         res.status = 200
         begin
           @logger.info "init_repo is hooked"
-          res.content = init_repo(@repo_config[:url], @repo_config[:path], @logger)
+          res.content = init_repo(@repo_config[:url],
+                                  @repo_config[:path],
+                                  @logger,
+                                  :no_fetch => true
+                                 )
           return res.send_response
         rescue => e
           res.content = e

@@ -1,11 +1,12 @@
 require 'git'
+require 'builder/constants'
 
 module Builder
   module Git
 
     module_function
     def resolve_commit_id(git_commit_specifier, opts = {})
-      git_base = opts[:git_base] || Git.open("#{WORK_DIR}/#{APP_REPO_DIR_NAME}")
+      git_base = opts[:git_base] || ::Git.open("#{WORK_DIR}/#{APP_REPO_DIR_NAME}")
 
       begin
         commit_id = git_base.revparse(git_commit_specifier)
@@ -24,13 +25,13 @@ module Builder
 
     # Initialize application Git repository to clone from remote
     # If the repository exists, it fetches the latest
-    def init_repo(url, path, logger)
+    def init_repo(url, path, logger, opts = {})
       logger.info "repository url: #{url}"
 
       if FileTest.exist?(path)
         logger.info "repository path exists: #{path}"
         rgit = ::Git.open(path, :log => logger)
-        logger.info rgit.fetch
+        logger.info rgit.fetch unless opts[:no_fetch]
       else
         logger.info "repository path doesn't exist: #{path}"
         # Create LogDevice to log to websocket message
