@@ -26,10 +26,10 @@ module Builder
         res.status = 200
         begin
           res.content = resolve_commit_id($1)
+          return res.send_response
         rescue => e
           res.content = e
         end
-        return res.send_response
       end
 
       if @http_path_info =~ /^\/init_repo/
@@ -37,10 +37,10 @@ module Builder
         begin
           @logger.info "init_repo is hooked"
           res.content = init_repo(@repo_config[:url], @repo_config[:path], @logger)
+          return res.send_response
         rescue => e
           res.content = e
         end
-        return res.send_response
       end
 
       res.status = 500
