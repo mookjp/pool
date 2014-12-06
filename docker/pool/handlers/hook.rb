@@ -94,12 +94,9 @@ target = hin["Host"].split(".")[0]
 
 # Move to the repository directory if there is.
 # Or clone it by url read from git_repository_conf file.
-unless FileTest.exist?(APP_REPO_DIR)
-  repository_url = File.open(REPOSITORY_CONF).gets.chomp
-  `git clone #{repository_url} #{APP_REPO_DIR}`
-  return Apache::return(Apache::HTTP_BAD_REQUEST) \
-    unless FileTest.exist?(APP_REPO_DIR)
-end
+`curl http://0.0.0.0:9000/init_repo`
+return Apache::return(Apache::HTTP_BAD_REQUEST) \
+  unless FileTest.exist?(APP_REPO_DIR)
 
 target_commit_id = `curl http://0.0.0.0:9000/resolve_git_commit/#{target}`.chomp
 Apache.errlogger Apache::APLOG_NOTICE, \

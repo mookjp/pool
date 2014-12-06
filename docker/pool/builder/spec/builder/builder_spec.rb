@@ -12,6 +12,7 @@ describe '.new' do
     before(:each) do
         @base_fixture_dir_path = File.expand_path('../../fixtures', __FILE__)
         @output_dir_path = File.expand_path('../../tmp', __FILE__)
+        WORK_DIR = @output_dir_path
         Dir.mkdir(@output_dir_path) if not FileTest.exist?(@output_dir_path)
     end
 
