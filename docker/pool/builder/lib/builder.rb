@@ -257,6 +257,7 @@ module Builder
       def find_id(git_commit_id = @git_commit_id, id_file = @id_file)
         ids = File.open(id_file, 'r').readlines.map{|s| s.chomp}
         matched = ids.map{|s| s.split('/',2)}.select{|s| s.first == git_commit_id }
+        all_containers = `docker inspect --format '{{ .Id }} {{ .Image }}' $(docker ps -q)`.split("\n").map{|s| s.split(' ')}
 
         matched_container = all_containers.select{|s| matched.map{|m| m.last}.include?(s.last)}.first
 
@@ -264,6 +265,7 @@ module Builder
 
         matched_container_id = matched_container.first
         ip = get_ip_of_container(matched_container_id)
+
         return nil if ip.strip.empty? or ip == '<no value>'
 
         return matched_container_id
