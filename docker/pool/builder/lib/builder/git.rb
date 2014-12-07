@@ -29,19 +29,25 @@ module Builder
     def init_repo(url, path, logger, opts = {})
       logger.info "repository url: #{url}"
 
-      if FileTest.exist?(path)
-        logger.info "repository path exists: #{path}"
-        rgit = ::Git.open(path, :log => logger)
+      if opts[:workspace_dir]
+        workspace_path = File.join(File.dirname(path), WORKSPACE_BASE_DIR, opts[:workspace_dir])
+      else
+        workspace_path = path
+      end
+
+      if FileTest.exist?(workspace_path)
+        logger.info "repository workspace_path exists: #{workspace_path}"
+        rgit = ::Git.open(workspace_path, :log => logger)
         logger.info rgit.fetch unless opts[:no_fetch]
       else
-        logger.info "repository path doesn't exist: #{path}"
-        # Create LogDevice to log to websocket message
-        app_repository_name = path.split('/').last
-        logger.info "cloning: #{[url, app_repository_name, File.basename(path)].join(",")}"
+        logger.info "repository workspace_path doesn't exist: #{workspace_path}"
+
+        app_repository_name = workspace_path.split('/').last
+        logger.info "cloning: #{[url, app_repository_name, File.basename(workspace_path)].join(",")}"
         rgit = ::Git.clone(url,
                            app_repository_name,
-                           :path => File.dirname(path),
-                           :log => logger)
+                           :path => File.dirname(workspace_path),
+                           :log  => logger)
       end
       return rgit
     end
