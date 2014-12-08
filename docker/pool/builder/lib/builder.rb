@@ -122,11 +122,7 @@ module Builder
     end
 
     def lockfile
-      if @git_commit_id
-        return File.join(LOCK_DIR, "pool_#{@git_commit_id}.lock")
-      else
-        return File.join(LOCK_DIR, "pool.lock")
-      end
+      return File.join(LOCK_DIR, "pool_#{@git_commit_id}.lock")
     end
 
     # Confirm container application is ready to get request via HTTP
