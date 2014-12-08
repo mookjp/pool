@@ -11,6 +11,8 @@ require 'builder/git_handler'
 require 'builder/constants'
 
 module Builder
+  class BuildLockedError < StandardError; end
+
   class Builder
     include ::Builder::Git
     #
@@ -38,7 +40,9 @@ module Builder
                   )
 
       # Create work directory if it has not been created yet
-      FileUtils.mkdir_p(work_dir) unless File.exist?(work_dir)
+      [work_dir, File.join(work_dir, WORKSPACE_BASE_DIR)].each do |d|
+        FileUtils.mkdir_p(d) unless File.exist?(d)
+      end
 
       @work_dir = work_dir
       @repository = create_repository_config(repository_conf,
@@ -84,16 +88,41 @@ module Builder
 
     # Build Docker image and run it as a container.
     def up
+      tried_count = 30
       begin
-        image_id = build
-        container_id = run image_id
-        confirm_running container_id
+        lock = File.open(lockfile, 'w')
+        if lock.flock(File::LOCK_EX | File::LOCK_NB )
+          image_id = build
+          container_id = run image_id
+          confirm_running container_id
+        else
+          @logger.info("Locked! Other environment is under building process")
+          @logger.info("Please access after finishing another building process...")
+          raise BuildLockedError
+        end
+      rescue BuildLockedError
+        tried_count.times do |c|
+          container = find_id
+          if container
+            @logger.info("container #{container} is found, try accessing")
+            confirm_running container
+            break
+          end
+          sleep 3
+          @logger.info("retrying.. container ready..")
+          raise if c >= tried_count - 1
+        end
       rescue => ex
         @logger.error ex
         raise
       ensure
         @logger.close
+        lock.flock(File::LOCK_UN)
       end
+    end
+
+    def lockfile
+      return File.join(LOCK_DIR, "pool_#{@git_commit_id}.lock")
     end
 
     # Confirm container application is ready to get request via HTTP
@@ -115,7 +144,8 @@ module Builder
         @logger.info("Application is ready! forwarding to port #{port}")
         @logger.info 'FINISHED'
         @ws.send 'FINISHED'
-      rescue
+      rescue => e
+        @logger.info e
         if tried_count <= 30
           sleep 1
           tried_count += 1
@@ -161,10 +191,15 @@ module Builder
       def build
         @logger.info "Build for #{@git_commit_id} ..."
 
-        @logger.info @rgit.checkout(@git_commit_id)
+        @workspace = init_repo(@repository[:url],
+                          @repository[:path],
+                          @logger,
+                          :workspace_dir => @git_commit_id)
+
+        @logger.info @workspace.checkout(@git_commit_id)
 
         @logger.info 'Start building docker image...'
-        build_command = "docker build -t '#{@repository[:container_prefix]}/#{@git_commit_id}' #{@repository[:path]}"
+        build_command = "docker build -t '#{@repository[:container_prefix]}/#{@git_commit_id}' #{@workspace.dir.path}"
         last_line = ptywrap(build_command)
         image_id = last_line.split(" ")[-1]
         @logger.info "image_id is #{image_id}"
@@ -215,6 +250,23 @@ module Builder
         end
       end
 
+      def find_id(git_commit_id = @git_commit_id, id_file = @id_file)
+        ids = File.open(id_file, 'r').readlines.map{|s| s.chomp}
+        matched = ids.map{|s| s.split('/',2)}.select{|s| s.first == git_commit_id }
+        all_containers = `docker inspect --format '{{ .Id }} {{ .Image }}' $(docker ps -q)`.split("\n").map{|s| s.split(' ')}
+
+        matched_container = all_containers.select{|s| matched.map{|m| m.last}.include?(s.last)}.first
+
+        return nil if matched_container == nil
+
+        matched_container_id = matched_container.first
+        ip = get_ip_of_container(matched_container_id)
+
+        return nil if ip.strip.empty? or ip == '<no value>'
+
+        return matched_container_id
+      end
+
       #
       # Get ip address of Docker container by docker inspect command
       #
@@ -250,3 +302,4 @@ module Builder
   end
 
 end
+
