@@ -75,6 +75,8 @@ def return_build_screen
 
   if r.uri =~ /^\/(styles|scripts|images)\//
     r.filename = doc_root + r.uri 
+  elsif r.uri =~ /^\/build/
+    r.reverse_proxy "http://localhost:9001" + r.uri
   else
     r.filename = doc_root + "index.html"
   end

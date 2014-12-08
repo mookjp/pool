@@ -5,6 +5,7 @@ require 'logger'
 require 'git'
 require 'pty'
 
+require 'builder/build_handler'
 require 'builder/builder_log_device'
 require 'builder/git'
 require 'builder/git_handler'
@@ -19,8 +20,8 @@ module Builder
     include ::Builder::Git
     #
     # Initialize method
-    # [ws]
-    #   EM::WebSocket
+    # [res]
+    #   EM::DelegatedHttpResponse object
     # [git_commit_id]
     #   Git commit id
     # [work_dir]
@@ -31,7 +32,7 @@ module Builder
     #   File to store the references git-commit-id and docker-image-id
     # [repository_conf]
     #   File to store repository url
-    def initialize(ws,
+    def initialize(res,
                    git_commit_specifier,
                    work_dir = WORK_DIR,
                    app_repo_dir_name = APP_REPO_DIR_NAME,
@@ -51,8 +52,8 @@ module Builder
                                              work_dir,
                                              app_repo_dir_name)
 
-      @ws = ws
-      @logger = Logger.new(BuilderLogDevice.new(ws, "#{log_file}"))
+      @res = res
+      @logger = Logger.new(BuilderLogDevice.new(res, "#{log_file}"))
       # Initialize Git repository and set @rgit instance
       @rgit = init_repo(@repository[:url],
                         @repository[:path],
@@ -63,9 +64,7 @@ module Builder
 
       @base_domain = Config.read_base_domain(base_domain_file)
       @logger.info "Initialized. Git commit id: #{@git_commit_id}"
-
     end
-
     # Create objects which has infomation of app
     #
     # [repository_conf]
@@ -145,8 +144,7 @@ module Builder
           raise "Response status is not ready: #{res.code}"
         end
         @logger.info("Application is ready! forwarding to port #{port}")
-        @logger.info 'FINISHED'
-        @ws.send 'FINISHED'
+        @res.send_event 'build_finished', 'FINISHED'
       rescue => e
         @logger.info e
         if tried_count <= 30

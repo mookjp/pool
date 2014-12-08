@@ -43,7 +43,7 @@ module Builder
                                   @repo_config[:path],
                                   @logger,
                                   :no_fetch => true
-                                 )
+                                 ).to_s
           return res.send_response
         rescue => e
           res.content = e

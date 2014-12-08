@@ -3,7 +3,6 @@ require 'spec_helper'
 
 require 'builder'
 require 'builder/builder_log_device'
-require 'em-websocket'
 require 'fileutils'
 
 describe '.resolve_commit_id' do
@@ -64,13 +63,6 @@ def init_builder(commit_specifier)
   File.copy_stream(fixture_base_domain_file_path,
                    tmp_base_domain_file_path)
 
-  # create WebSocket mock
-  mock_ws = Object.new
-  allow(mock_ws).to receive(:nil?) {false}
-
-  log_file = File.expand_path('log_file', @output_dir_path)
-  logger = Logger.new(Builder::BuilderLogDevice.new(mock_ws, log_file))
-
-  # initialize repository
-  Builder::Builder.new(mock_ws, commit_specifier, @output_dir_path)
+  # execute
+  Builder::Builder.new(mock_res, commit_specifier, @output_dir_path)
 end
