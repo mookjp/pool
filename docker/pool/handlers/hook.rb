@@ -71,7 +71,7 @@ def return_build_screen
   Apache.errlogger Apache::APLOG_NOTICE, \
     "#{r.uri}, #{r.path_info}, #{r.args}, #{r.protocol}, #{r.the_request}"
   # TODO: Fix build-screen
-  r.filename = "/app/handlers/resources/build-screen/" + r.uri
+  r.filename = "/app/handlers/resources/build-screen/index.html"
   r.filename = "/app/handlers/resources/build-screen/" + r.uri if r.uri =~ /^\/styles/ or r.uri =~ /^\/scripts/ or r.uri =~ /^\/images/
 
   return Apache::return(Apache::OK)
