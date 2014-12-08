@@ -70,7 +70,6 @@ RUN touch /app/images/ids
 # Add private key directory to clone repository
 RUN mkdir -p /root/.ssh
 RUN mkdir -p /var/www/.ssh
-RUN ls -trlh
 ADD keys /app/keys
 ADD /provisioning/ssh_config /var/www/.ssh/config
 ADD /provisioning/ssh_config /root/.ssh/config
