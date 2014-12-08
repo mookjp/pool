@@ -124,14 +124,21 @@ module Builder
     # Build Docker image and run it as a container.
     def up
       begin
-        image_id = build
-        container_id = run image_id
-        confirm_running container_id
+        lock = File.open('/var/lock/subsys/pool.lock', 'w')
+        if lock.flock(File::LOCK_EX | File::LOCK_NB )
+          image_id = build
+          container_id = run image_id
+          confirm_running container_id
+        else
+          @logger.info("Locked! Other environment is under building process")
+          @logger.info("Please access after finishing another building process...")
+        end
       rescue => ex
         @logger.error ex
         raise
       ensure
         @logger.close
+        lock.flock(File::LOCK_UN)
       end
     end
 
