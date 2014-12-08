@@ -9,6 +9,8 @@ require 'builder/builder_log_device'
 require 'builder/git'
 require 'builder/git_handler'
 require 'builder/constants'
+require 'builder/config'
+require 'builder/bot'
 
 module Builder
   class BuildLockedError < StandardError; end
@@ -58,11 +60,11 @@ module Builder
 
       @id_file = id_file
       @git_commit_id = resolve_commit_id(git_commit_specifier, :git_base => @rgit)
-      @base_domain = read_base_domain(base_domain_file)
 
+      @base_domain = Config.read_base_domain(base_domain_file)
       @logger.info "Initialized. Git commit id: #{@git_commit_id}"
-    end
 
+    end
 
     # Create objects which has infomation of app
     #
@@ -77,7 +79,7 @@ module Builder
     def create_repository_config(repository_conf,
                           work_dir,
                           app_repo_dir_name)
-      repository_url = File.open(repository_conf).gets.chomp
+      repository_url = Config.read_repository_url(repository_conf)
       name = repository_url.split("/").last.split(".git").first
       return {
         :url => repository_url,
@@ -226,9 +228,6 @@ module Builder
         container_id
       end
 
-      def read_base_domain base_domain_file
-        File.open(base_domain_file).gets.chomp
-      end
 
       def pool_hostname
         [@git_commit_id, @base_domain].join(".")

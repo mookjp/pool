@@ -1,10 +1,27 @@
 #!/bin/sh
 # Setup script for pool host
 
+while [[ $# > 1 ]]
+do
+key="$1"
+shift
+
+case $key in
+    --github-bot)
+    GITHUB_BOT=true
+    shift
+    ;;
+    *)
+    shift
+    ;;
+esac
+done
+
 # pass arguments to pool config vars
 PREVIEW_REPOSITORY_URL=${1:-https://github.com/mookjp/flaskapp.git}
 MAX_CONTAINERS=${2:-5}
 POOL_BASE_DOMAIN=${3:-pool.dev}
+GITHUB_BOT=${GITHUB_BOT:-false}
 
 export PATH=/app/vendor:$PATH:/usr/local/bin
 cd /tmp
@@ -43,5 +60,6 @@ docker run -d -v /var/run/docker.sock:/var/run/docker.sock \
               --env MAX_CONTAINERS=${MAX_CONTAINERS} \
               --env PREVIEW_REPOSITORY_URL=${PREVIEW_REPOSITORY_URL} \
               --env POOL_BASE_DOMAIN=${POOL_BASE_DOMAIN} \
+              --env GITHUB_BOT=${GITHUB_BOT} \
               --name pool -p 80:80 -p 8080:8080 pool-server
 hostname pool

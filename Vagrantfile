@@ -24,8 +24,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.provision "shell" do |s|
     s.path   = "./scripts/init_host_server"
+    
+    # If you'd like to enable github integration, uncomment below
+    # s.args << "--github-bot"
+    
     # Set your repository for previewing by pool
-    s.args = ["https://github.com/mookjp/flaskapp.git"]
+    s.args << "https://github.com/mookjp/flaskapp.git"
     # Set the maximum number of containers runnning at the same time
     s.args << "5"
     # Set POOL_BASE_DOMAIN
