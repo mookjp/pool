@@ -9,6 +9,7 @@ module Builder
       git_base = opts[:git_base] || ::Git.open("#{WORK_DIR}/#{APP_REPO_DIR_NAME}")
 
       begin
+        git_base.fetch
         commit_id = git_base.revparse(git_commit_specifier)
       rescue => e
         if e.message =~ /unknown revision or path not in the working tree/
