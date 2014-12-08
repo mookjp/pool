@@ -6,34 +6,13 @@ require 'git'
 require 'pty'
 
 require 'builder/builder_log_device'
+require 'builder/git'
 require 'builder/git_handler'
+require 'builder/constants'
 
 module Builder
-  WORK_DIR = "/app/images"
-  APP_REPO_DIR_NAME = "app_repo"
-
-  module_function
-  def resolve_commit_id(git_commit_specifier, opts = {})
-    git_base = opts[:git_base] || Git.open("#{WORK_DIR}/#{APP_REPO_DIR_NAME}")
-
-    begin
-      git_base.fetch
-      commit_id = git_base.revparse(git_commit_specifier)
-    rescue => e
-      if e.message =~ /unknown revision or path not in the working tree/
-        remote_branches = git_base.branches.remote.reject{|n| n.name =~ /^HEAD/}
-        matched_branches = remote_branches.select{|n| n.name =~ /#{git_commit_specifier}/}
-        raise e if matched_branches.size == 0
-        commit_id = git_base.revparse(matched_branches.first.full)
-      else
-        raise e
-      end
-    end
-    return commit_id
-  end
-
   class Builder
-    include ::Builder
+    include ::Builder::Git
     #
     # Initialize method
     # [ws]
@@ -54,7 +33,7 @@ module Builder
                    app_repo_dir_name = APP_REPO_DIR_NAME,
                    log_file = "#{work_dir}/builder.log",
                    id_file = "#{work_dir}/ids",
-                   repository_conf = "#{work_dir}/preview_target_repository",
+                   repository_conf = "#{work_dir}/#{REPOSITORY_CONF}",
                    base_domain_file = "#{work_dir}/base_domain"
                   )
 
@@ -70,7 +49,9 @@ module Builder
       @logger = Logger.new(BuilderLogDevice.new(ws, "#{log_file}"))
       @logger.info "Initialized. Git commit id: #{@git_commit_id}"
       # Initialize Git repository and set @rgit instance
-      init_repo
+      @rgit = init_repo(@repository[:url],
+                        @repository[:path],
+                        @logger)
 
       @id_file = id_file
       @git_commit_id = resolve_commit_id(git_commit_specifier, :git_base => @rgit)
@@ -99,26 +80,6 @@ module Builder
         :path => "#{work_dir}/#{app_repo_dir_name}",
         :container_prefix => container_prefix(name),
       }.freeze
-    end
-
-    # Initialize application Git repository to clone from remote
-    # If the repository exists, it fetches the latest
-    def init_repo
-      @logger.info "repository url:  #{@repository[:url]}"
-
-      if FileTest.exist?(@repository[:path])
-        @logger.info "repository path exists: #{@repository[:path]}"
-        @rgit = Git.open(@repository[:path], :log => @logger)
-        @logger.info @rgit.fetch
-      else
-        @logger.info "repository path doesn't exist: #{@repository[:path]}"
-        # Create LogDevice to log to websocket message
-        app_repository_name = @repository[:path].split('/').last
-        @rgit = Git.clone(@repository[:url],
-                          app_repository_name,
-                          :path => @work_dir,
-                          :log => @logger)
-      end
     end
 
     # Build Docker image and run it as a container.
