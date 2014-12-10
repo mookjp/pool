@@ -2,8 +2,23 @@ box: wercker-labs/docker
 build:
   steps:
     - script:
-        name: docker version
-        code: docker -v
+      name: install ruby for slack notification
+      code: sudo apt-get install -y ruby
     - script:
-        name: docker build
-        code: docker build -t pool ./docker/pool
+      name: docker install
+      code: |
+        ls -la docker
+        mkdir tmp
+        curl https://get.docker.com/builds/Linux/x86_64/docker-latest -o tmp/docker
+        ls /usr/local/bin
+        ls /var/run/docker.sock
+    - script:
+      name: docker build
+      code: docker build -t pool ./docker/pool
+    - script:
+      name: run system test
+      code: |
+        docker run -v /var/run/docker.sock:/var/run/docker.sock --workdir="/tmp/builder" pool  /opt/ruby-2.1.2/bin/bundle exec rspec --tag system_test
+  after-steps:
+    - wantedly/pretty-slack-notify:
+      webhook_url: $SLACK_WEBHOOK_URL

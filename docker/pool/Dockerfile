@@ -17,6 +17,11 @@ RUN yum install -y cronie
 RUN yum install -y npm
 RUN yum install -y bzip2
 
+# Update docker
+RUN curl https://get.docker.com/builds/Linux/x86_64/docker-latest -o docker
+RUN chmod +x docker
+RUN cp docker /usr/bin/
+
 # Install required gems
 RUN /usr/local/bin/gem install --no-document bundler
 
