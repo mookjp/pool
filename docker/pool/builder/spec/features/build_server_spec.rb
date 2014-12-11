@@ -15,7 +15,7 @@ require 'docker'
 
 describe 'Builder', :system_test => true do
   include EM::SpecHelper
-  default_timeout 30
+  default_timeout 200
 
   before(:all) do
     @logger = Logger.new(STDOUT)
@@ -29,6 +29,25 @@ describe 'Builder', :system_test => true do
   it 'building master branch' do
    em do
      start_builder('master')
+     EM.add_timer(1) do
+       conn =  EM::WebSocketClient.connect("ws://0.0.0.0:8090/")
+       conn.errback { fail }
+          conn.stream do |msg|
+            @logger.info("#{msg.data}")
+            if msg.data == "FINISHED"
+              conn.close_connection
+              done
+            end
+          end
+     end
+   end
+  end
+
+  it 'building CAPITAL branch' do
+   em do
+     # Actual branch name is "CAPITAL" but HTTP request only supports lower
+     # letter so the specifier is "capital"
+     start_builder('capital')
      EM.add_timer(1) do
        conn =  EM::WebSocketClient.connect("ws://0.0.0.0:8090/")
        conn.errback { fail }

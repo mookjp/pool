@@ -18,12 +18,15 @@ describe '.resolve_commit_id' do
     FileUtils.rm_rf(@output_dir_path) if FileTest.exist?(@output_dir_path)
   end
 
-  it 'can be parse ref when the ref whose name includes capital letter' do
-    expect { init_builder('CAPITAL') }.not_to raise_error
+  # https://github.com/mookjp/flaskapp has branch named as "CAPITAL"
+  it 'can be parse ref when the ref whose name includes capital letter and specifier is small letter' do
+    branch_name = 'capital'
+    expect { init_builder(branch_name) }.not_to raise_error
   end
 
   it 'throws error when it got branch-name which does not exist' do
-    expect { init_builder('There-is-no-such-name') }.to raise_error
+    branch_name = 'There-is-no-such-name'
+    expect { init_builder(branch_name) }.to raise_error
   end
 end
 

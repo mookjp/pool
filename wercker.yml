@@ -2,23 +2,31 @@ box: wercker-labs/docker
 build:
   steps:
     - script:
-      name: install ruby for slack notification
-      code: sudo apt-get install -y ruby
+        name: upgrade docker
+        code: |
+          which docker
+          mkdir tmp
+          curl https://get.docker.com/builds/Linux/x86_64/docker-latest -o tmp/docker
+          chmod +x tmp/docker
+          sudo service docker stop
+          sudo cp tmp/docker /usr/bin/docker
+          sudo service docker start
+          docker -v
     - script:
-      name: docker install
-      code: |
-        ls -la docker
-        mkdir tmp
-        curl https://get.docker.com/builds/Linux/x86_64/docker-latest -o tmp/docker
-        ls /usr/local/bin
-        ls /var/run/docker.sock
+        name: install ruby for slack notification
+        code: sudo apt-get install -y ruby
     - script:
-      name: docker build
-      code: docker build -t pool ./docker/pool
+        name: docker build
+        code: docker build -t pool-server ./docker/pool
     - script:
-      name: run system test
-      code: |
-        docker run -v /var/run/docker.sock:/var/run/docker.sock --workdir="/tmp/builder" pool  /opt/ruby-2.1.2/bin/bundle exec rspec --tag system_test
+        name: run pool container
+        code: |
+          sudo docker run -d -v /var/run/docker.sock:/var/run/docker.sock --name pool pool-server
+    - script:
+        name: run system test
+        code: |
+          sudo docker exec pool sh -c "cd /tmp/builder && /opt/ruby-2.1.2/bin/bundle exec rspec --tag system_test; exit"
   after-steps:
     - wantedly/pretty-slack-notify:
-      webhook_url: $SLACK_WEBHOOK_URL
+        webhook_url: $SLACK_WEBHOOK_URL
+        channel: wercker
