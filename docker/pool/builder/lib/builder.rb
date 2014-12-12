@@ -80,7 +80,9 @@ module Builder
       name = repository_url.split("/").last.split(".git").first
       return {
         :url => repository_url,
+        :name => name,
         :path => "#{work_dir}/#{app_repo_dir_name}",
+        :container_prefix => container_prefix(name),
       }.freeze
     end
 
@@ -197,7 +199,7 @@ module Builder
         @logger.info @workspace.checkout(@git_commit_id)
 
         @logger.info 'Start building docker image...'
-        build_command = "docker build -t '#{@git_commit_id}' #{@workspace.dir.path}"
+        build_command = "docker build -t '#{@repository[:container_prefix]}/#{@git_commit_id}' #{@workspace.dir.path}"
         last_line = ptywrap(build_command)
         image_id = last_line.split(" ")[-1]
         @logger.info "image_id is #{image_id}"
@@ -292,6 +294,10 @@ module Builder
       def container_port
         #TODO: change to use user-defined value
         return 80
+      end
+
+      def container_prefix name
+        return name.gsub(/-/, '_').downcase
       end
   end
 
