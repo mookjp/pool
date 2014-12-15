@@ -28,6 +28,16 @@ describe '.resolve_commit_id' do
     branch_name = 'There-is-no-such-name'
     expect { init_builder(branch_name) }.to raise_error
   end
+
+  it 'interprets -- as branch name' do
+    branch_name = "slash--branch--name"
+    expect { init_builder(branch_name) }.not_to raise_error
+  end
+
+  it 'interprets -- as branch name when it has some symbols' do
+    branch_name = "issue-100--my-fix"
+    expect { init_builder(branch_name) }.not_to raise_error
+  end
 end
 
 def init_builder(commit_specifier)
