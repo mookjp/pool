@@ -14,7 +14,9 @@ module Builder
       rescue => e
         if e.message =~ /unknown revision or path not in the working tree/
           remote_branches = git_base.branches.remote.reject{|n| n.name =~ /^HEAD/}
-          matched_branches = remote_branches.select{|n| n.name =~ /#{git_commit_specifier}/i}
+          # Commit specifier may include "--" as a substitute for symbol like
+          # "/"
+          matched_branches = remote_branches.select{|n| n.name =~ /#{git_commit_specifier.gsub(/--/, ".")}/i}
           raise e if matched_branches.size == 0
           commit_id = git_base.revparse(matched_branches.first.full)
         else
