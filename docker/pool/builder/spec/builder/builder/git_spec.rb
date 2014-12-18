@@ -23,6 +23,12 @@ describe '.resolve_commit_id' do
     expect { init_builder(branch_name) }.not_to raise_error
   end
 
+  # https://github.com/mookjp/flaskapp has tag named as "1.0.0"
+  it 'can be parse tag' do
+    branch_name = '1--0--0'
+    expect { init_builder(branch_name) }.not_to raise_error
+  end
+
   it 'throws error when it got branch-name which does not exist' do
     branch_name = 'There-is-no-such-name'
     expect { init_builder(branch_name) }.to raise_error
