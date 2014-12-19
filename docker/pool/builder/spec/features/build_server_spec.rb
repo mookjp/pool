@@ -15,7 +15,7 @@ require 'docker'
 
 describe 'Builder', :system_test => true do
   include EM::SpecHelper
-  default_timeout 200
+  default_timeout 180
 
   before(:all) do
     @logger = Logger.new(STDOUT)

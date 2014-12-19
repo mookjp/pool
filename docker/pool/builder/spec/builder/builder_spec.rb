@@ -5,7 +5,6 @@ require 'builder'
 require 'builder/builder_log_device'
 require 'em-websocket'
 require 'fileutils'
-require 'pry'
 
 describe '.new' do
 

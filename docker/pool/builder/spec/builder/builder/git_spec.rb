@@ -5,7 +5,6 @@ require 'builder'
 require 'builder/builder_log_device'
 require 'em-websocket'
 require 'fileutils'
-require 'pry'
 
 describe '.resolve_commit_id' do
   before(:each) do
@@ -21,6 +20,12 @@ describe '.resolve_commit_id' do
   # https://github.com/mookjp/flaskapp has branch named as "CAPITAL"
   it 'can be parse ref when the ref whose name includes capital letter and specifier is small letter' do
     branch_name = 'capital'
+    expect { init_builder(branch_name) }.not_to raise_error
+  end
+
+  # https://github.com/mookjp/flaskapp has tag named as "1.0.0"
+  it 'can be parse tag' do
+    branch_name = '1--0--0'
     expect { init_builder(branch_name) }.not_to raise_error
   end
 

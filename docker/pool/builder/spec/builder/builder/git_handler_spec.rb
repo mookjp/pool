@@ -68,6 +68,26 @@ describe 'git handler' do
     }
   end
 
+  it 'resolve_commit_id with tag name' do
+    em {
+      EM::start_server("0.0.0.0", 9010, Builder::GitHandler)
+      EM.add_timer(1) do 
+        http = EM::HttpRequest.new('http://0.0.0.0:9010/init_repo').get :timeout => 10
+        http.errback{ fail }
+        http.callback do
+          EM.add_timer(1) do
+            resolve = EM::HttpRequest.new('http://0.0.0.0:9010/resolve_git_commit/1--0--0').get :timeout => 10
+            resolve.errback{ fail }
+            resolve.callback do
+              expect(resolve.response.length).to eq(40)
+              done
+            end
+          end
+        end
+      end
+    }
+  end
+
   private
 
   def request_init_repo
