@@ -24,7 +24,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.provision "shell" do |s|
     s.path   = "./scripts/init_host_server"
-    
+    s.args = [] # initialize arguments array holder
+
     # If you'd like to enable github integration, uncomment below
     # s.args << "--github-bot"
     
