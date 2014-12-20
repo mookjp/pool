@@ -51,7 +51,6 @@ module Builder
 
       @ws = ws
       @logger = Logger.new(BuilderLogDevice.new(ws, "#{log_file}"))
-      @logger.info "Initialized. Git commit id: #{@git_commit_id}"
       # Initialize Git repository and set @rgit instance
       @rgit = init_repo(@repository[:url],
                         @repository[:path],
@@ -60,6 +59,8 @@ module Builder
       @id_file = id_file
       @git_commit_id = resolve_commit_id(git_commit_specifier, :git_base => @rgit)
       @base_domain = read_base_domain(base_domain_file)
+
+      @logger.info "Initialized. Git commit id: #{@git_commit_id}"
     end
 
 
