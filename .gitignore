@@ -36,3 +36,5 @@ mkmf.log
 
 # pyenv file for use of wercker-cli
 .python-version
+
+docker/pool/config/config.yml

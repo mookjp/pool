@@ -11,11 +11,13 @@ RUN cp /usr/share/zoneinfo/Japan /etc/localtime
 # Install required packages
 RUN yum install -y docker-io
 RUN yum install -y git
-RUN yum install -y supervisor
 RUN yum install -y cronie
 # For build-screen
 RUN yum install -y npm
 RUN yum install -y bzip2
+# Install supervisord
+RUN yum install -y python-setuptools
+RUN easy_install supervisor
 
 # Update docker
 RUN curl https://get.docker.com/builds/Linux/x86_64/docker-latest -o docker
@@ -80,6 +82,9 @@ ADD /provisioning/ssh_config /var/www/.ssh/config
 ADD /provisioning/ssh_config /root/.ssh/config
 RUN chown -R apache. /var/www/.ssh
 
+# Add config files
+ADD config /app/config
+
 # Add apache to pool and docker group to access /app
 # as hook.rb has to access application's repository in it
 # and to access docker sock file
@@ -92,6 +97,7 @@ RUN chmod --recursive g+rwx /app
 ENV PREVIEW_REPOSITORY_URL https://github.com/mookjp/flaskapp.git
 ENV MAX_CONTAINERS 10
 ENV POOL_BASE_DOMAIN pool.dev
+ENV GITHUB_BOT false
 
 EXPOSE 80 8080
 

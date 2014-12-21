@@ -23,6 +23,8 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "eventmachine_httpserver"
   spec.add_runtime_dependency "git"
   spec.add_runtime_dependency "docker-api"
+  spec.add_runtime_dependency "octokit"
+  spec.add_runtime_dependency "faraday-http-cache"
 
   spec.add_development_dependency "bundler"
   spec.add_development_dependency "em-spec"
