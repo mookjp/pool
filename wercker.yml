@@ -26,6 +26,10 @@ build:
         name: run system test
         code: |
           sudo docker exec pool sh -c "cd /tmp/builder && /opt/ruby-2.1.2/bin/bundle exec rspec --tag system_test; exit"
+    - script:
+        name: run system test with infrataster, serverspec
+        code: |
+          sudo docker exec pool sh -c "cd /app/tests && ./test.sh; exit"
   after-steps:
     - wantedly/pretty-slack-notify:
         webhook_url: $SLACK_WEBHOOK_URL

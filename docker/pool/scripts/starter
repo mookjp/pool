@@ -19,6 +19,9 @@ echo -n ${PREVIEW_REPOSITORY_URL} > /app/images/preview_target_repository
 echo -n ${MAX_CONTAINERS} > /app/images/max_containers
 echo -n ${POOL_BASE_DOMAIN} > /app/images/base_domain
 
+# setup hosts file
+echo ${POOL_BASE_DOMAIN} >> /etc/hosts
+
 chown root:docker /var/run/docker.sock && \
 chmod 775 /var/run/docker.sock && \
 service crond start && \

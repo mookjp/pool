@@ -1,0 +1,6 @@
+# Gemfile for infrataster
+source 'https://rubygems.org'
+gem 'rspec'
+gem 'infrataster'
+gem 'rspec-json_matcher'
+gem 'serverspec'
