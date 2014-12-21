@@ -103,6 +103,7 @@ To install `pool` on your Amazon Linux, use following userdata. This example is 
 ```sh
 #!/bin/sh
 # Setup script for pool
+# NOTE: Run it as root
 yum install -y git
 yum install -y docker
 
@@ -122,7 +123,7 @@ git clone https://github.com/mookjp/pool.git
 # 1) Git repository URL
 # 2) Maximum number of containers of web application
 # 3) Hostname
-sudo /app/pool/scripts/init_host_server "https://github.com/mookjp/flaskapp.git" 5 "dev.prevs.io"
+/app/pool/scripts/init_host_server "https://github.com/mookjp/flaskapp.git" 5 "dev.prevs.io"
 ```
 
 #### Parameters of init-script
