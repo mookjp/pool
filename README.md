@@ -112,6 +112,8 @@ git clone https://github.com/mookjp/pool.git
 sudo /app/pool/scripts/init_host_server "https://github.com/mookjp/flaskapp.git" 5 "dev.prevs.io"
 ```
 
+#### Parameters of init-script
+
 `pool/scripts/init_host_server` is a small util script to run `pool` container. It gets 3 parameters:
 
 1. Git repository URL
