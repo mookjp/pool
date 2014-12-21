@@ -12,9 +12,6 @@ The simplest proxy service to access your Dockerized web application by Git comm
 You can build and run your web application as a Docker container just to access
 `http://<git-commit-id, branch or tag>.pool.dev` for example.
 
-<p align="center">
-<img src="https://raw.githubusercontent.com/wiki/mookjp/pool/images/architecture.png" width="600"/>
-</p>
 
 ## Requirements
 
