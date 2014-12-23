@@ -8,4 +8,4 @@ bundle config build.nokogiri --use-system-libraries
 
 bundle install
 
-bundle exec rspec
+bundle exec rake spec

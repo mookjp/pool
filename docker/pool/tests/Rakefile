@@ -5,20 +5,25 @@ task :spec    => 'spec:all'
 task :default => :spec
 
 namespace :spec do
-  targets = []
-  Dir.glob('./spec/*').each do |dir|
+  serverspec = []
+  Dir.glob('./spec/serverspec/*').each do |dir|
     next unless File.directory?(dir)
-    targets << File.basename(dir)
+    serverspec << File.basename(dir)
   end
 
-  task :all     => targets
+  task :all     => [serverspec, :infrataster].flatten
   task :default => :all
 
-  targets.each do |target|
+  serverspec.each do |target|
     desc "Run serverspec tests to #{target}"
     RSpec::Core::RakeTask.new(target.to_sym) do |t|
       ENV['TARGET_HOST'] = target
-      t.pattern = "spec/#{target}/*_spec.rb"
+      t.pattern = "spec/serverspec/#{target}/*_spec.rb"
     end
+  end
+
+  RSpec::Core::RakeTask.new(:infrataster) do |t|
+      desc "Run infrataster tests"
+      t.pattern = "spec/infrataster/*_spec.rb"
   end
 end
