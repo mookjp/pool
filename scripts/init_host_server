@@ -23,19 +23,21 @@ MAX_CONTAINERS=${2:-5}
 POOL_BASE_DOMAIN=${3:-pool.dev}
 GITHUB_BOT=${GITHUB_BOT:-false}
 
-export PATH=/app/vendor:$PATH:/usr/local/bin
 cd /tmp
+mkdir -p /opt/pool/bin
+export POOL_BIN_PATH=/opt/pool/bin
+export PATH=${POOL_BIN_PATH}:$PATH:/usr/local/bin
 
 if [[ -f /etc/os-release ]] && [[ $(cat /etc/os-release | grep "NAME=CoreOS") ]]; then
     echo "CoreOS detected. Updating to latest docker.."
-    curl -s https://get.docker.com/builds/Linux/x86_64/docker-latest -o /app/vendor/docker
-    chmod +x /app/vendor/docker
+    curl -s https://get.docker.com/builds/Linux/x86_64/docker-latest -o ${POOL_BIN_PATH}/docker
+    chmod +x ${POOL_BIN_PATH}/docker
     cat << EOF > /etc/systemd/system/docker.service 
 .include /usr/lib/systemd/system/docker.service
 
 [Service]
 ExecStart=
-ExecStart=/app/vendor/docker -d
+ExecStart=${POOL_BIN_PATH}/docker -d
 EOF
     sudo systemctl daemon-reload
     sudo systemctl enable docker
@@ -49,9 +51,8 @@ if [[ -f  ${IMAGE_APACHE_MOD_MRUBY} ]]; then
 fi
 
 # Add mantainance script to log in to docker
-mkdir -p /app/vendor/scripts
-wget -q https://raw.githubusercontent.com/jpetazzo/nsenter/master/docker-enter -O /app/vendor/scripts/docker-enter
-chmod +x /app/vendor/scripts/docker-enter
+wget -q https://raw.githubusercontent.com/jpetazzo/nsenter/master/docker-enter -O ${POOL_BIN_PATH}/docker-enter
+chmod +x ${POOL_BIN_PATH}/docker-enter
 
 # build build-server
 cd /app/docker/pool
