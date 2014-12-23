@@ -24,7 +24,7 @@ POOL_BASE_DOMAIN=${3:-pool.dev}
 GITHUB_BOT=${GITHUB_BOT:-false}
 
 cd /tmp
-mkdir -p /opt/pool
+mkdir -p /opt/pool/bin
 export POOL_BIN_PATH=/opt/pool/bin
 export PATH=${POOL_BIN_PATH}:$PATH:/usr/local/bin
 
