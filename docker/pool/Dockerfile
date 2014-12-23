@@ -85,6 +85,9 @@ RUN chown -R apache. /var/www/.ssh
 # Add config files
 ADD config /app/config
 
+# Add test files
+ADD tests /app/tests
+
 # Add apache to pool and docker group to access /app
 # as hook.rb has to access application's repository in it
 # and to access docker sock file

@@ -70,7 +70,15 @@ def return_build_screen
   r = Apache::Request.new
   Apache.errlogger Apache::APLOG_NOTICE, \
     "#{r.uri}, #{r.path_info}, #{r.args}, #{r.protocol}, #{r.the_request}"
-  r.filename= "/app/handlers/resources/build-screen/" + r.uri
+  
+  doc_root = "/app/handlers/resources/build-screen/"
+
+  if r.uri =~ /^\/(styles|scripts|images)\//
+    r.filename = doc_root + r.uri 
+  else
+    r.filename = doc_root + "index.html"
+  end
+
   return Apache::return(Apache::OK)
 end
 
