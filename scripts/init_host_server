@@ -1,20 +1,27 @@
-#!/bin/sh
+#!/bin/sh -xe
 # Setup script for pool host
 
-while [[ $# > 1 ]]
-do
-key="$1"
-shift
 
-case $key in
-    --github-bot)
-    GITHUB_BOT=true
+GITHUB_BOT=false
+
+# options may be followed by one colon to indicate they have a required argument
+if ! options=$(getopt -u -o g -l github-bot -- "$@")
+then
+    # something went wrong, getopt will put out an error message for us
+    exit 1
+fi
+
+set -- $options
+
+while [ $# -gt 0 ]
+do
+    case $1 in
+    -g | --github-bot) GITHUB_BOT=true ;;
+    (--) shift; break;;
+    (-*) echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
+    (*) break;;
+    esac
     shift
-    ;;
-    *)
-    shift
-    ;;
-esac
 done
 
 # pass arguments to pool config vars
