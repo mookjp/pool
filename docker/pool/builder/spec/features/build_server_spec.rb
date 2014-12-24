@@ -20,7 +20,7 @@ describe 'Builder', :system_test => true do
     @logger = Logger.new(STDOUT)
     @build_handler_addr = "0.0.0.0"
     @build_handler_port = 9002
-    @test_addr = "http://#{@build_handler_addr}:#{@build_handler_port}/build/master"
+    @test_addr = "http://#{@build_handler_addr}:#{@build_handler_port}/build"
 
     Docker::Container.all.select{|c| c.info["Command"] =~ /flaskapp/}.each{|c| c.kill}
   end
@@ -33,7 +33,7 @@ describe 'Builder', :system_test => true do
    em do
      start_builder
      EM.add_timer(1) do
-       conn =  init_lisnter
+       conn =  init_lisnter('master')
        conn.error { |msg| @logger.info("#{msg}"); fail }
        conn.on("build_finished") do |msg|
          @logger.info("#{msg}")
@@ -53,7 +53,7 @@ describe 'Builder', :system_test => true do
      # letter so the specifier is "capital"
      start_builder
      EM.add_timer(1) do
-       conn =  init_lisnter
+       conn =  init_lisnter('capital')
        conn.error { |msg| @logger.info("#{msg}"); fail }
        conn.message {|m| @logger.info(m)}
        conn.on("build_finished") do |msg|
@@ -74,7 +74,7 @@ describe 'Builder', :system_test => true do
      start_builder
 
      EM.add_timer(1) do
-       conn =  init_lisnter
+       conn =  init_lisnter('master')
        conn.error { |msg| @logger.info("#{msg}"); fail }
        conn.message {|m| @logger.info(m)}
        conn.on "build_finished" do |msg|
@@ -88,7 +88,7 @@ describe 'Builder', :system_test => true do
      end
 
      EM.add_timer(2) do
-       conn =  init_lisnter
+       conn =  init_lisnter('master')
        conn.error { |msg| @logger.info("#{msg}"); fail }
        conn.message {|m| @logger.info(m)}
        conn.on "build_finished" do |msg|
@@ -108,8 +108,8 @@ describe 'Builder', :system_test => true do
     EM::start_server(@build_handler_addr, @build_handler_port, Builder::BuildHandler)
   end
 
-  def init_lisnter
-    conn =  EM::EventSource.new("#{@test_addr}")
+  def init_lisnter(git_commit_specifier)
+    conn =  EM::EventSource.new("#{@test_addr}/#{git_commit_specifier}")
     conn.inactivity_timeout = 120
     return conn
   end
