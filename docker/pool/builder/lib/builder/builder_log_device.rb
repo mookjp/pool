@@ -2,26 +2,28 @@
 module Builder
   class BuilderLogDevice
     @logfile = nil
-    @ws = nil
+    @res = nil
 
-    # [ws]
-    #   EM::WebSocket object
+    # [res]
+    #   EM::DelegatedHttpResponse object
     # [logfile]
     #   File obejct to write log; this parameter is optional
-    def initialize(ws, logfile = nil)
-      raise RuntimeError, 'Output objects are nil' if ws.nil?
+    def initialize(res, logfile = nil)
+      raise RuntimeError, 'Output objects are nil' if res.nil?
       @logfile = File.new(logfile, 'a') unless logfile.nil?
-      @ws = ws
+      @res  = res
+      self.write('BuilderLogDevice is initialized')
     end
 
     # write and send to client the log message
     def write(message)
       @logfile.write(message) unless @logfile.nil?
-      @ws.send(strip_control_chars(message))
+      @res.send_event("build_log", strip_control_chars(message))
     end
 
     # Close file object
     def close
+      @res.close_connection_after_writing
       @logfile.close
     end
 

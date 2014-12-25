@@ -3,7 +3,6 @@ require 'spec_helper'
 
 require 'builder'
 require 'builder/builder_log_device'
-require 'em-websocket'
 require 'fileutils'
 
 describe '.new' do
@@ -40,15 +39,7 @@ describe '.new' do
         File.copy_stream(fixture_base_domain_file_path,
                          tmp_base_domain_file_path)
 
-        # create WebSocket mock
-        mock_ws = Object.new
-        allow(mock_ws).to receive(:nil?) {false}
-
-        log_file = File.expand_path('log_file', @output_dir_path)
-        logger = Logger.new(Builder::BuilderLogDevice.new(mock_ws, log_file))
-
         # execute
-        b = Builder::Builder.new(mock_ws, 'master', @output_dir_path)
-
+        Builder::Builder.new(mock_res, 'master', @output_dir_path)
     end
 end

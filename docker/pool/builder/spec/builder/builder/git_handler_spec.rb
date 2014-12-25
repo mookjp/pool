@@ -2,7 +2,6 @@ require 'spec_helper'
 
 require 'builder'
 require 'builder/builder_log_device'
-require 'em-websocket'
 require 'em-spec/rspec'
 require 'em-http'
 require 'net/http'

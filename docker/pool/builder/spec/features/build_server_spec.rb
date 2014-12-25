@@ -1,9 +1,7 @@
 require 'spec_helper'
 
-require 'em-websocket'
-require 'em-websocket-client'
 require 'em-spec/rspec'
-require 'em-http'
+require 'em-eventsource'
 require 'builder'
 require 'docker'
 
@@ -13,12 +11,17 @@ require 'docker'
 # execute the following command:
 # /opt/ruby-2.1.2/bin/bundle exec rspec --tag system_test
 
+
 describe 'Builder', :system_test => true do
   include EM::SpecHelper
   default_timeout 180
 
   before(:all) do
     @logger = Logger.new(STDOUT)
+    @build_handler_addr = "0.0.0.0"
+    @build_handler_port = 9002
+    @test_addr = "http://#{@build_handler_addr}:#{@build_handler_port}/build"
+
     Docker::Container.all.select{|c| c.info["Command"] =~ /flaskapp/}.each{|c| c.kill}
   end
 
@@ -28,17 +31,18 @@ describe 'Builder', :system_test => true do
 
   it 'building master branch' do
    em do
-     start_builder('master')
+     start_builder
      EM.add_timer(1) do
-       conn =  EM::WebSocketClient.connect("ws://0.0.0.0:8090/")
-       conn.errback { fail }
-          conn.stream do |msg|
-            @logger.info("#{msg.data}")
-            if msg.data == "FINISHED"
-              conn.close_connection
-              done
-            end
-          end
+       conn =  init_lisnter('master')
+       conn.error { |msg| @logger.info("#{msg}"); fail }
+       conn.on("build_finished") do |msg|
+         @logger.info("#{msg}")
+         if msg == "FINISHED"
+           conn.close
+           done
+         end
+       end
+       conn.start
      end
    end
   end
@@ -47,17 +51,19 @@ describe 'Builder', :system_test => true do
    em do
      # Actual branch name is "CAPITAL" but HTTP request only supports lower
      # letter so the specifier is "capital"
-     start_builder('capital')
+     start_builder
      EM.add_timer(1) do
-       conn =  EM::WebSocketClient.connect("ws://0.0.0.0:8090/")
-       conn.errback { fail }
-          conn.stream do |msg|
-            @logger.info("#{msg.data}")
-            if msg.data == "FINISHED"
-              conn.close_connection
-              done
-            end
-          end
+       conn =  init_lisnter('capital')
+       conn.error { |msg| @logger.info("#{msg}"); fail }
+       conn.message {|m| @logger.info(m)}
+       conn.on("build_finished") do |msg|
+         @logger.info("#{msg}")
+         if msg == "FINISHED"
+           conn.close
+           done
+         end
+       end
+       conn.start
      end
    end
   end
@@ -65,55 +71,46 @@ describe 'Builder', :system_test => true do
   it 'locking workspace while building image' do
    output = ''
    em do
-     start_builder('master')
+     start_builder
 
      EM.add_timer(1) do
-       conn =  EM::WebSocketClient.connect("ws://0.0.0.0:8090/")
-       conn.errback { fail }
-          conn.stream do |msg|
-            @logger.info("#{msg.data}")
-            if msg.data == "FINISHED"
-              conn.close_connection
-              done
-            end
-          end
+       conn =  init_lisnter('master')
+       conn.error { |msg| @logger.info("#{msg}"); fail }
+       conn.message {|m| @logger.info(m)}
+       conn.on "build_finished" do |msg|
+         @logger.info("#{msg}")
+         if msg == "FINISHED"
+           conn.close
+           done
+         end
+       end
+       conn.start
      end
 
      EM.add_timer(2) do
-       conn =  EM::WebSocketClient.connect("ws://0.0.0.0:8090/")
-       conn.errback { fail }
-          conn.stream do |msg|
-            @logger.info("#{msg.data}")
-            output << msg.data
-            if msg.data == "FINISHED"
-              conn.close_connection
-              expect(output).to match(/Locked!/)
-              done
-            end
-          end
+       conn =  init_lisnter('master')
+       conn.error { |msg| @logger.info("#{msg}"); fail }
+       conn.message {|m| @logger.info(m)}
+       conn.on "build_finished" do |msg|
+         @logger.info("#{msg}")
+         output << msg.data
+         if msg.data == "FINISHED"
+           conn.close
+           expect(output).to match(/Locked!/)
+           done
+         end
+       end
      end
    end
   end
 
-  def start_builder(git_specifier)
-    EM::WebSocket.run(:host => '0.0.0.0', :port => 8090) do |ws|
-      ws.onopen { |handshake|
-        puts 'WebSocket connection open'
-        target = git_specifier
-
-        Thread.new(ws) do |ws|
-          begin
-            builder = Builder::Builder.new(ws, target)
-            builder.up
-          rescue => ex
-            puts "#{ex.class}: #{ex.message}; #{ex.backtrace}"
-            ws.send "#{ex.class}: #{ex.message}; #{ex.backtrace}"
-          end
-        end
-      }
-
-      ws.onclose { puts 'Connection closed' }
-    end
+  def start_builder
+    EM::start_server(@build_handler_addr, @build_handler_port, Builder::BuildHandler)
   end
 
+  def init_lisnter(git_commit_specifier)
+    conn =  EM::EventSource.new("#{@test_addr}/#{git_commit_specifier}")
+    conn.inactivity_timeout = 120
+    return conn
+  end
 end
