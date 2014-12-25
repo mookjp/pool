@@ -52,9 +52,13 @@ EOF
 fi
 
 # load cache images on local if it exists (for speed to build vagrant)
-IMAGE_APACHE_MOD_MRUBY="/app/images/apache-mod-mruby.tar"
-if [[ -f  ${IMAGE_APACHE_MOD_MRUBY} ]]; then
-    sudo docker load < ${IMAGE_APACHE_MOD_MRUBY} 
+# If you want to use cache, execute below commands to pull pool-base
+# image and load it to vagrant VM:
+# $ docker pull prevsio/pool-base && docker save prevsio/pool-base > images/pool-base.tar
+
+IMAGE_POOL_BASE="/app/images/pool-base.tar"
+if [[ -f  ${IMAGE_POOL_BASE} ]]; then
+    sudo docker load < ${IMAGE_POOL_BASE} 
 fi
 
 # Add mantainance script to log in to docker
