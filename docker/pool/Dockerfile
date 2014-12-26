@@ -38,9 +38,15 @@ ADD handlers /app/handlers
 
 # Install build-screen
 RUN mkdir -p /app/handlers/resources
-ADD build-screen /tmp/build-screen
+RUN mkdir /tmp/build-screen
+# Add package.json beforehand then execute npm install
+ADD build-screen/package.json /tmp/build-screen/package.json
 WORKDIR /tmp/build-screen
 RUN npm install
+ADD build-screen /tmp/build-screen-2
+RUN cp -nr /tmp/build-screen-2/* /tmp/build-screen
+RUN cp -nr /tmp/build-screen-2/.[^.]* /tmp/build-screen
+# For bower install
 RUN git config --global url.https://.insteadOf git://
 RUN $(npm bin)/bower --allow-root install
 RUN $(npm bin)/grunt build
