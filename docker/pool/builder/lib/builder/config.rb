@@ -9,6 +9,7 @@ module Builder
       :repository_conf  => File.join(WORK_DIR, REPOSITORY_CONF),
       :base_domain_file => File.join(WORK_DIR, 'base_domain'),
       :config_yml_path  => File.join(WORK_DIR, '../config', 'config.yml'),
+      :id_list_file_path => File.join(WORK_DIR, ID_LIST_FILE_NAME)
     }
 
     module_function 
@@ -24,6 +25,11 @@ module Builder
     def read_config_yaml(config_yml_path = @defaults[:config_yml_path])
       template = ERB.new(File.new(config_yml_path).read)
       YAML.load(template.result(binding))
+    end
+
+    def read_ids(id_list_file_path = @defaults[:id_list_file_path])
+      ids = File.open(id_list_file_path, "r").readlines.map{|l| l.chomp.split("/")}
+      return ids
     end
 
   end

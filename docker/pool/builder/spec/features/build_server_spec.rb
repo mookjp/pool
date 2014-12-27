@@ -19,7 +19,7 @@ describe 'Builder', :system_test => true do
   before(:all) do
     @logger = Logger.new(STDOUT)
     @build_handler_addr = "0.0.0.0"
-    @build_handler_port = 9002
+    @build_handler_port = 10010
     @test_addr = "http://#{@build_handler_addr}:#{@build_handler_port}/build"
 
     Docker::Container.all.select{|c| c.info["Command"] =~ /flaskapp/}.each{|c| c.kill}

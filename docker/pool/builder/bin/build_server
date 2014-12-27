@@ -10,4 +10,7 @@ EM.run {
 
   # build log publishing server
   EM::start_server("0.0.0.0", 9001, Builder::BuildHandler)
+
+  # build docker api server
+  EM::start_server("0.0.0.0", 9002, Builder::DockerHandler)
 }

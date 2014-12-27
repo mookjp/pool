@@ -1,31 +1,14 @@
-FROM ainoya/apache-mod-mruby
+FROM prevsio/pool-base
 MAINTAINER mookjp
 
 WORKDIR /tmp
 
 RUN export PATH=$PATH:/usr/local/bin
 
-# Set time
-RUN cp /usr/share/zoneinfo/Japan /etc/localtime
-
-# Install required packages
-RUN yum install -y docker-io
-RUN yum install -y git
-RUN yum install -y cronie
-# For build-screen
-RUN yum install -y npm
-RUN yum install -y bzip2
-# Install supervisord
-RUN yum install -y python-setuptools
-RUN easy_install supervisor
-
 # Update docker
-RUN curl https://get.docker.com/builds/Linux/x86_64/docker-latest -o docker
+RUN curl -s https://get.docker.com/builds/Linux/x86_64/docker-latest -o docker
 RUN chmod +x docker
 RUN cp docker /usr/bin/
-
-# Install required gems
-RUN /usr/local/bin/gem install --no-document bundler
 
 # hostname settings
 ADD provisioning/network /etc/sysconfig/network
