@@ -8,7 +8,7 @@ module Builder
     module_function
     #
     # Get container address which corresponds to Git commit id.
-    # Returns Docker container id.
+    # Returns the address of container.
     #
     # [commit_id]
     #   Git commit id
@@ -23,8 +23,11 @@ module Builder
       logger.info("Now number of running containers: #{containers.size}")
 
       ids = Config.read_ids
-      logger.info("No ids in id file")
-      return nil if ids.empty?
+
+      if ids.empty?
+        logger.info("No ids in id file")
+        return nil
+      end
 
       matched_images = ids.select{|i| i[0] == commit_id}.map{|i| i[1]}
       return nil if matched_images.empty?
