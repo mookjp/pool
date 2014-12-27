@@ -31,13 +31,19 @@ File.new(ID_FILE, "w") unless FileTest.exist?(ID_FILE)
 hin = Apache::Headers_in.new
 target = hin["Host"].split(".")[0]
 
+# To request and control git repository inside pool, init the api client
+# Git repository handler(GitHandler) listens on "http://0.0.0.0:9000"
 git_api = WebAPI.new("http://0.0.0.0:9000") 
 
-# Move to the repository directory if there is.
-# Or clone it by url read from git_repository_conf file.
+# Initialize preview target git repository via githandler api.
+# After requesting to initialize git repository via '/init_repo',
+# check if repository doesn't exist because of some error or fail,
+# Apache returns Bad request.
 git_api.get("/init_repo")
+
 Apache::return(Apache::HTTP_BAD_REQUEST) unless FileTest.exist?(APP_REPO_DIR)
 
+# Resolve actual git commit ref by target name got from subdomain via git handler api
 res = git_api.get("/resolve_git_commit/#{target}")
 target_commit_id = res.body
 Apache.errlogger Apache::APLOG_NOTICE, \
