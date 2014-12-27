@@ -59,6 +59,8 @@ fi
 
 IMAGE_POOL_BASE="/app/images/pool-base.tar"
 if [[ -f  ${IMAGE_POOL_BASE} ]]; then
+    # wait docker daemon ready
+    sleep 3
     docker load < ${IMAGE_POOL_BASE} 
 fi
 
