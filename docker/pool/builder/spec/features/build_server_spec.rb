@@ -35,6 +35,7 @@ describe 'Builder', :system_test => true do
      EM.add_timer(1) do
        conn =  init_lisnter('master')
        conn.error { |msg| @logger.info("#{msg}"); fail }
+       conn.on("build_log"){|m| @logger.info(m)}
        conn.on("build_finished") do |msg|
          @logger.info("#{msg}")
          if msg == "FINISHED"
@@ -55,7 +56,7 @@ describe 'Builder', :system_test => true do
      EM.add_timer(1) do
        conn =  init_lisnter('capital')
        conn.error { |msg| @logger.info("#{msg}"); fail }
-       conn.message {|m| @logger.info(m)}
+       conn.on("build_log"){|m| @logger.info(m)}
        conn.on("build_finished") do |msg|
          @logger.info("#{msg}")
          if msg == "FINISHED"
@@ -69,14 +70,13 @@ describe 'Builder', :system_test => true do
   end
 
   it 'locking workspace while building image' do
-   output = ''
    em do
      start_builder
 
      EM.add_timer(1) do
        conn =  init_lisnter('master')
-       conn.error { |msg| @logger.info("#{msg}"); fail }
-       conn.message {|m| @logger.info(m)}
+       conn.error { |msg| @logger.info("#{msg}")}
+       conn.on("build_log"){|m| @logger.info(m)}
        conn.on "build_finished" do |msg|
          @logger.info("#{msg}")
          if msg == "FINISHED"
@@ -87,19 +87,21 @@ describe 'Builder', :system_test => true do
        conn.start
      end
 
+     @output = ""
      EM.add_timer(2) do
        conn =  init_lisnter('master')
-       conn.error { |msg| @logger.info("#{msg}"); fail }
-       conn.message {|m| @logger.info(m)}
+       conn.error { |msg| @logger.info("#{msg}")}
+       conn.on("build_log"){|m| @output << m; @logger.info(m)}
        conn.on "build_finished" do |msg|
          @logger.info("#{msg}")
-         output << msg.data
-         if msg.data == "FINISHED"
+         if msg == "FINISHED"
+           expect(@output).to match(/Locked!/)
+           expect(@output).to match(/Successfully built/)
            conn.close
-           expect(output).to match(/Locked!/)
            done
          end
        end
+       conn.start
      end
    end
   end

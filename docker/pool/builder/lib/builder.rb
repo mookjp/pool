@@ -1,6 +1,7 @@
 require 'fileutils'
 require 'net/http'
 require 'logger'
+require 'timeout'
 
 require 'git'
 require 'pty'
@@ -55,14 +56,18 @@ module Builder
                                              app_repo_dir_name)
 
       @res = res
-      @logger = Logger.new(BuilderLogDevice.new(res, "#{log_file}"))
+      @log_device_pool = BuilderLogDevicePool.instance
+      logger = Logger.new(BuilderLogDevice.new(res, "#{log_file}"))
       # Initialize Git repository and set @rgit instance
       @rgit = init_repo(@repository[:url],
                         @repository[:path],
-                        @logger)
+                        logger)
 
       @id_file = id_file
       @git_commit_id = resolve_commit_id(git_commit_specifier, :git_base => @rgit)
+
+      @log_device = @log_device_pool.find_or_create_device(@git_commit_id, res, "#{log_file}")
+      @logger = Logger.new(@log_device)
 
       @base_domain = Config.read_base_domain(base_domain_file)
       @logger.info "Initialized. Git commit id: #{@git_commit_id}"
@@ -92,7 +97,6 @@ module Builder
 
     # Build Docker image and run it as a container.
     def up
-      tried_count = 30
       begin
         lock = File.open(lockfile, 'w')
         if lock.flock(File::LOCK_EX | File::LOCK_NB )
@@ -101,26 +105,21 @@ module Builder
           confirm_running container_id
         else
           @logger.info("Locked! Other environment is under building process")
-          @logger.info("Please access after finishing another building process...")
+          @logger.info("Please wait for finishing another building process...")
           raise BuildLockedError
         end
       rescue BuildLockedError
-        tried_count.times do |c|
-          container = find_id
-          if container
-            @logger.info("container #{container} is found, try accessing")
-            confirm_running container
-            break
-          end
-          sleep 3
-          @logger.info("retrying.. container ready..")
-          raise if c >= tried_count - 1
+        Timeout::timeout(BUILD_LOCK_TIMEOUT) do
+          lock.flock(File::LOCK_EX)
         end
+      rescue Timeout::Error
+        @logger.error("No response after #{BUILD_LOCK_TIMEOUT}. Please reload the page.")
       rescue => ex
         @logger.error ex
         raise
       ensure
         @logger.close
+        @log_device_pool.delete_device(@git_commit_id)
         lock.flock(File::LOCK_UN)
       end
     end
@@ -146,7 +145,7 @@ module Builder
           raise "Response status is not ready: #{res.code}"
         end
         @logger.info("Application is ready! forwarding to port #{port}")
-        @res.send_event 'build_finished', 'FINISHED'
+        @log_device.notify_finished
       rescue => e
         @logger.info e
         if tried_count <= 30
