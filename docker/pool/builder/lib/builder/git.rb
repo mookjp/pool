@@ -10,6 +10,7 @@ module Builder
 
       begin
         git_base.fetch
+        git_base.reset_hard('origin/HEAD')
         commit_id = git_base.revparse(git_commit_specifier)
       rescue => e
         if e.message =~ /unknown revision or path not in the working tree/
