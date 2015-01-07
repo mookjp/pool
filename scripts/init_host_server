@@ -76,5 +76,5 @@ docker run -d -v /var/run/docker.sock:/var/run/docker.sock \
               --env PREVIEW_REPOSITORY_URL=${PREVIEW_REPOSITORY_URL} \
               --env POOL_BASE_DOMAIN=${POOL_BASE_DOMAIN} \
               --env GITHUB_BOT=${GITHUB_BOT} \
-              --name pool -p 80:80 pool-server
+              --name pool -p 80:80 -p 8080:8080 pool-server
 hostname pool
