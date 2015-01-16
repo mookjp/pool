@@ -112,7 +112,7 @@ describe 'Builder', :system_test => true do
 
   def init_lisnter(git_commit_specifier)
     conn =  EM::EventSource.new("#{@test_addr}/#{git_commit_specifier}")
-    conn.inactivity_timeout = 120
+    conn.inactivity_timeout = 240
     return conn
   end
 end

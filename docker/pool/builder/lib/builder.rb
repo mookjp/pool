@@ -15,6 +15,7 @@ require 'builder/docker_handler'
 require 'builder/constants'
 require 'builder/config'
 require 'builder/bot'
+require 'builder/version'
 
 module Builder
   class BuildLockedError < StandardError; end
@@ -59,6 +60,8 @@ module Builder
       @log_device_pool = BuilderLogDevicePool.instance
       logger = Logger.new(BuilderLogDevice.new(res, "#{log_file}"))
       # Initialize Git repository and set @rgit instance
+      Docker.logger = logger
+
       @rgit = init_repo(@repository[:url],
                         @repository[:path],
                         logger)
@@ -101,8 +104,8 @@ module Builder
         lock = File.open(lockfile, 'w')
         if lock.flock(File::LOCK_EX | File::LOCK_NB )
           image_id = build
-          container_id = run image_id
-          confirm_running container_id
+          container = run(image_id)
+          confirm_running(container)
         else
           @logger.info("Locked! Other environment is under building process")
           @logger.info("Please wait for finishing another building process...")
@@ -132,9 +135,9 @@ module Builder
     # the container is not ready, wait and retry to send request
     #
     # TODO: need to set protocol, port and path by the user
-    def confirm_running(container_id)
-      ip = get_ip_of_container container_id
-      port = get_port_of_container container_id
+    def confirm_running(container)
+      ip = container[:ip]
+      port = container[:port]
 
       tried_count = 1
       begin
@@ -157,147 +160,69 @@ module Builder
       end
     end
 
-    # Wrap command with pty spawn to get output
     #
-    # [command]
-    #   command to execute
+    # Build Docker image from Git commit id.
+    # Docker image will be built by Dockerfile in Git repository which is pointed
+    # by Git commit id.
+    # This method returns Docker image id.
     #
-    def ptywrap(command)
-      last_line = ''
+    def build
+      @logger.info "Build for #{@git_commit_id} ..."
 
-      PTY.spawn(command) do |r, w, pid|
-        begin
-          r.each do |line|
-            @logger.info line
-            last_line = line
+      @workspace = init_repo(@repository[:url],
+                        @repository[:path],
+                        @logger,
+                        :workspace_dir => @git_commit_id)
 
-            status = PTY.check pid
-            unless status.nil?
-              raise RuntimeError,
-                "Docker build has not finished successfully, see #{@log_file}"\
-                unless status.exitstatus.eql? 0
-            end
-        end
-        rescue Errno::EIO
-        end
-      end
-      last_line
+      @logger.info @workspace.checkout(@git_commit_id)
+
+      @logger.info 'Start building docker image...'
+      image = Docker.build("#{@repository[:container_prefix]}/#{@git_commit_id}",
+                   "#{@workspace.dir.path}"
+                  )
+      image_id = image.json["Id"]
+      write_ids(image_id)
+      image_id
     end
 
-      #
-      # Build Docker image from Git commit id.
-      # Docker image will be built by Dockerfile in Git repository which is pointed
-      # by Git commit id.
-      # This method returns Docker image id.
-      #
-      def build
-        @logger.info "Build for #{@git_commit_id} ..."
+    #
+    # Run container with Docker image id
+    # [image_id]
+    #   Docker image id
+    #
+    def run(image_id)
+      @logger.info 'Start running container...'
+      env = ["POOL_HOSTNAME=#{pool_hostname}"]
+      container = Docker.run(image_id, {'Env' => env})
 
-        @workspace = init_repo(@repository[:url],
-                          @repository[:path],
-                          @logger,
-                          :workspace_dir => @git_commit_id)
+      return container
+    end
 
-        @logger.info @workspace.checkout(@git_commit_id)
 
-        @logger.info 'Start building docker image...'
-        build_command = "docker build -t '#{@repository[:container_prefix]}/#{@git_commit_id}' #{@workspace.dir.path}"
-        last_line = ptywrap(build_command)
-        image_id = last_line.split(" ")[-1]
-        @logger.info "image_id is #{image_id}"
+    def pool_hostname
+      [@git_commit_id, @base_domain].join(".")
+    end
 
-        image_full_id = \
-          `docker inspect --format='{{.Id}}' #{image_id}`.chomp
-        write_ids(image_full_id)
-        image_full_id
+    #
+    # Write Git commit id and Docker image id to id file.
+    # id file is needed for controller to judge to build new image
+    #
+    # [image_id]
+    #   Docker image id
+    # [id_file]
+    #   Path to id file
+    #
+    def write_ids(image_id, id_file = @id_file)
+      @logger.info "Write image id <#{image_id}> and commit id <#{@git_commit_id}> to #{@id_file}"
+
+      File.open(id_file, "a") do |file|
+        file.write("#{@git_commit_id}/#{image_id}\n")
       end
+    end
 
-      #
-      # Run container with Docker image id
-      # [image_id]
-      #   Docker image id
-      #
-      def run(image_id)
-        @logger.info 'Start running container...'
-        container_id = `docker run -P -e POOL_HOSTNAME=#{pool_hostname} -d #{image_id}`.chomp
-
-        is_running = `docker inspect --format='{{.State.Running}}' #{container_id}`
-        raise RuntimeError, 'Could not start running container.' if is_running.eql? 'false'
-
-        container_id
-      end
-
-
-      def pool_hostname
-        [@git_commit_id, @base_domain].join(".")
-      end
-
-      #
-      # Write Git commit id and Docker image id to id file.
-      # id file is needed for controller to judge to build new image
-      #
-      # [image_id]
-      #   Docker image id
-      # [id_file]
-      #   Path to id file
-      #
-      def write_ids(image_id, id_file = @id_file)
-        @logger.info "Write image id <#{image_id}> and commit id <#{@git_commit_id}> to #{@id_file}"
-
-        File.open(id_file, "a") do |file|
-          file.write("#{@git_commit_id}/#{image_id}\n")
-        end
-      end
-
-      def find_id(git_commit_id = @git_commit_id, id_file = @id_file)
-        ids = File.open(id_file, 'r').readlines.map{|s| s.chomp}
-        matched = ids.map{|s| s.split('/',2)}.select{|s| s.first == git_commit_id }
-        all_containers = `docker inspect --format '{{ .Id }} {{ .Image }}' $(docker ps -q)`.split("\n").map{|s| s.split(' ')}
-
-        matched_container = all_containers.select{|s| matched.map{|m| m.last}.include?(s.last)}.first
-
-        return nil if matched_container == nil
-
-        matched_container_id = matched_container.first
-        ip = get_ip_of_container(matched_container_id)
-
-        return nil if ip.strip.empty? or ip == '<no value>'
-
-        return matched_container_id
-      end
-
-      #
-      # Get ip address of Docker container by docker inspect command
-      #
-      # [container_id]
-      #   Docker container id
-      #
-      def get_ip_of_container(container_id)
-        `docker inspect --format '{{ .NetworkSettings.IPAddress }}' #{container_id}`.chomp
-      end
-
-      #
-      # Get port of Docker container by docker inspect command
-      #
-      # [container_id]
-      #   Docker container id
-      #
-      def get_port_of_container(container_id)
-        @logger.info "Getting port id for container <#{container_id}> ..."
-        port = container_port
-        @logger.info "port for container #{container_id} is : #{port}"
-
-        return port
-      end
-
-      def container_port
-        #TODO: change to use user-defined value
-        return 80
-      end
-
-      def container_prefix name
-        return name.gsub(/-/, '_').downcase
-      end
+    def container_prefix name
+      return name.gsub(/-/, '_').downcase
+    end
   end
 
 end

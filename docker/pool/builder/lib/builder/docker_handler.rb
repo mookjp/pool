@@ -21,10 +21,11 @@ module Builder
         commit_id = $1
         begin
           res.status = 200
-          addr = Docker.find_container_by_commit_id(commit_id)
-          if addr
+          container = Docker.find_container_by_commit_id(commit_id)
+          if container
+            addr = "#{container[:ip]}:#{container[:port]}"
             res.content = JSON.generate({:status => 'success',
-                                        :addr => addr})
+                                         :addr => addr})
             @logger.info "found container_id: #{res.content}"
             return res.send_response
           end
