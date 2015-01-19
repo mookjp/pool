@@ -40,7 +40,7 @@ if [ $(which systemctl) ]; then
     systemctl stop docker
     wget -q https://get.docker.com/builds/Linux/x86_64/docker-latest -O ${POOL_BIN_PATH}/docker
     chmod +x ${POOL_BIN_PATH}/docker
-    cat << EOF > /etc/systemd/system/docker.service 
+    cat << EOF > /etc/systemd/system/docker.service
 .include /usr/lib/systemd/system/docker.service
 
 [Service]
