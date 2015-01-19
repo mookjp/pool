@@ -35,12 +35,12 @@ mkdir -p /opt/pool/bin
 export POOL_BIN_PATH=/opt/pool/bin
 export PATH=${POOL_BIN_PATH}:$PATH:/usr/local/bin
 
-if [[ -f /etc/os-release ]] && [[ $(cat /etc/os-release | grep "NAME=CoreOS") ]]; then
-    echo "CoreOS detected. Updating to latest docker.."
+if [ $(which systemctl) ]; then
+    echo "systemd detected. Updating to latest docker.."
     systemctl stop docker
     wget -q https://get.docker.com/builds/Linux/x86_64/docker-latest -O ${POOL_BIN_PATH}/docker
     chmod +x ${POOL_BIN_PATH}/docker
-    cat << EOF > /etc/systemd/system/docker.service 
+    cat << EOF > /etc/systemd/system/docker.service
 .include /usr/lib/systemd/system/docker.service
 
 [Service]
@@ -50,6 +50,13 @@ EOF
     systemctl daemon-reload
     systemctl enable docker
     systemctl start docker
+else
+    echo "NOTICE:"
+    echo "This system does not have systemd and docker was not updated
+    automatically."
+    echo "pool container uses the latest docker."
+    echo "If docker on host is not the latest version, pool may not work
+    correctly as it can not communicate between host and containers."
 fi
 
 # load cache images on local if it exists (for speed to build vagrant)
