@@ -115,15 +115,14 @@ cp /tmp/docker /usr/bin/docker
 service docker start
 
 # Download pool then run pool container
-mkdir /app
-cd /app
-git clone https://github.com/mookjp/pool.git
+git clone https://github.com/mookjp/pool.git /app
+
 # You can create `pool` image and run to execute `init_host_server` script.
 # It gets 3 parameters:
 # 1) Git repository URL
 # 2) Maximum number of containers of web application
 # 3) Hostname
-/app/pool/scripts/init_host_server "https://github.com/mookjp/flaskapp.git" 5 "dev.prevs.io"
+/app/scripts/init_host_server "https://github.com/mookjp/flaskapp.git" 5 "dev.prevs.io"
 ```
 
 #### Parameters of init-script
