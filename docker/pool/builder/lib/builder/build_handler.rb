@@ -7,7 +7,7 @@ module EventMachine
   class HttpResponse
     attr_accessor :sse
     def fixup_headers
-      if @content
+      if @content && @content.is_a?(String)
         @headers["Content-Length"] = @content.bytesize
       elsif @chunks
         @headers["Transfer-Encoding"] = "chunked"
