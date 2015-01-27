@@ -69,6 +69,7 @@ RUN mkdir -p /var/www/.ssh
 ADD keys /app/keys
 ADD /provisioning/ssh_config /var/www/.ssh/config
 ADD /provisioning/ssh_config /root/.ssh/config
+RUN chmod 600 /root/.ssh/config
 RUN chown -R apache. /var/www/.ssh
 
 # Add config files
