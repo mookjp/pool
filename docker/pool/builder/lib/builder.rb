@@ -22,7 +22,7 @@ module Builder
 
   class Builder
     include ::Builder::Git
-    #
+
     # Initialize method
     # [res]
     #   EM::DelegatedHttpResponse object
@@ -75,6 +75,7 @@ module Builder
       @base_domain = Config.read_base_domain(base_domain_file)
       @logger.info "Initialized. Git commit id: #{@git_commit_id}"
     end
+
     # Create objects which has infomation of app
     #
     # [repository_conf]
@@ -160,12 +161,10 @@ module Builder
       end
     end
 
-    #
     # Build Docker image from Git commit id.
     # Docker image will be built by Dockerfile in Git repository which is pointed
     # by Git commit id.
     # This method returns Docker image id.
-    #
     def build
       @logger.info "Build for #{@git_commit_id} ..."
 
@@ -185,11 +184,9 @@ module Builder
       image_id
     end
 
-    #
     # Run container with Docker image id
     # [image_id]
     #   Docker image id
-    #
     def run(image_id)
       @logger.info 'Start running container...'
       env = ["POOL_HOSTNAME=#{pool_hostname}"]
@@ -203,7 +200,6 @@ module Builder
       [@git_commit_id, @base_domain].join(".")
     end
 
-    #
     # Write Git commit id and Docker image id to id file.
     # id file is needed for controller to judge to build new image
     #
@@ -211,7 +207,6 @@ module Builder
     #   Docker image id
     # [id_file]
     #   Path to id file
-    #
     def write_ids(image_id, id_file = @id_file)
       @logger.info "Write image id <#{image_id}> and commit id <#{@git_commit_id}> to #{@id_file}"
 
