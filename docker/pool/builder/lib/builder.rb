@@ -220,7 +220,13 @@ module Builder
       end
     end
 
-    def container_prefix name
+    # As the naming rule for Git repository and Docker image is different,
+    # this method would convert it to the name which matches both rules.
+    #
+    # [name]
+    #   The name of Git repository
+    def container_prefix(name)
+      name << '_' while name.size < 4
       return name.gsub(/-/, '_').downcase
     end
   end
