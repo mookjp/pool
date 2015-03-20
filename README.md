@@ -132,7 +132,7 @@ git clone https://github.com/mookjp/pool.git /app
 1. Git repository URL
 2. Maximum number of containers of web application
 3. Hostname. you can get your hostname from your container of application
-   as environment valuable; `POOL_BASE_DOMAIN` so that you can set configuration
+   as environment variable; `POOL_BASE_DOMAIN` so that you can set configuration
    related to hostname inside your container
 
 ## How it works
