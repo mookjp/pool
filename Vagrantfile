@@ -43,6 +43,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     v.check_guest_additions = false
     v.functional_vboxsf     = false
   end
+
+  config.ssh.insert_key = false
 end
 
 VagrantDNS::Config.logger = Logger.new("dns.log")
