@@ -28,7 +28,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     # If you'd like to enable github integration, uncomment below
     # s.args << "--github-bot"
-    
     # Set your repository for previewing by pool
     s.args << "https://github.com/mookjp/flaskapp.git"
     # Set the maximum number of containers runnning at the same time
@@ -36,13 +35,15 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # Set POOL_BASE_DOMAIN
     s.args << [pool_hostname, pool_tld].join(".")
   end
-     
+
   config.vm.provider :virtualbox do |v|
     # On VirtualBox, we don't have guest additions or a functional vboxsf
     # in CoreOS, so tell Vagrant that so it can be smarter.
     v.check_guest_additions = false
     v.functional_vboxsf     = false
   end
+
+  config.ssh.insert_key = false
 end
 
 VagrantDNS::Config.logger = Logger.new("dns.log")
