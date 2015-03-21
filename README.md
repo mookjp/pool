@@ -135,6 +135,28 @@ git clone https://github.com/mookjp/pool.git /app
    as environment variable; `POOL_BASE_DOMAIN` so that you can set configuration
    related to hostname inside your container
 
+#### Passing a SSH key to pool container
+
+You may want to upload a SSH private key to pool container in case your git repository is hidden from public access.
+
+Then you can place id_rsa at `/app/docker/pool/keys/id_rsa` in the server where pool is installed.
+
+And id_rsa will be uploaded to `/app/keys/id_rsa` on the pool container which is going to be used to clone your application repository.
+
+```bash
+core@pool ~ $ cat<<'EOS'>/app/docker/pool/keys/id_rsa
+> -----BEGIN RSA PRIVATE KEY-----
+> ..........
+> -----END RSA PRIVATE KEY-----
+> EOS
+
+core@pool ~ $ sudo /app/scripts/init_host_server
+
+core@pool ~ $ sudo docker exec -it pool bash
+
+[pool container]# ls -l /app/keys/id_rsa
+```
+
 ## How it works
 
 The part of proxy in `pool` accesses your Git repository with commit id given as
