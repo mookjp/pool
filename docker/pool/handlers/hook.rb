@@ -1,5 +1,4 @@
 # hook to build and run Docker container
-
 WORK_DIR = "/app/images"
 APP_REPO_DIR = "#{WORK_DIR}/app_repo"
 ID_FILE = "#{WORK_DIR}/ids"
@@ -44,29 +43,35 @@ git_api.get("/init_repo")
 unless FileTest.exist?(APP_REPO_DIR)
   Apache::return(Apache::HTTP_BAD_REQUEST)
 else
-  # Resolve actual git commit ref by target name got from subdomain via git
-  # handler api
-  res = git_api.get("/resolve_git_commit/#{target}")
-  target_commit_id = res.body
-  Apache.errlogger Apache::APLOG_NOTICE, \
-    "target: #{target}, target_commit_id: #{target_commit_id}"
-  # There is the target commit in repository or having not been initialized as
-  # Git repository, return bad request response
-  unless res.code == "200"
-    Apache::return(Apache::HTTP_BAD_REQUEST)
-  else
+  redis = Redis.new "localhost", 6379
+  container_addr = redis.get("resolve_git_commit-#{target}")
+  unless container_addr
+    # Resolve actual git commit ref by target name got from subdomain via git
+    # handler api
+    res = git_api.get("/resolve_git_commit/#{target}")
+    target_commit_id = res.body
+    Apache.errlogger Apache::APLOG_NOTICE, \
+      "target: #{target}, target_commit_id: #{target_commit_id}"
+    # There is the target commit in repository or having not been initialized as
+    # Git repository, return bad request response
+    unless res.code == "200"
+      Apache::return(Apache::HTTP_BAD_REQUEST)
+    end
     docker_api = WebAPI.new("http://0.0.0.0:9002")
 
     container_addr = docker_api.get("/containers/#{target_commit_id}").body
-    matched_container = JSON.parse(container_addr)
-
-    if matched_container["status"] != "success"
-      return_build_screen
-    else
-      # Forward to container
-      r = Apache::Request.new
-      r.reverse_proxy "http://#{matched_container["addr"]}" + r.uri
-      Apache::return(Apache::OK)
-    end
+    redis.set("resolve_git_commit-#{target}", container_addr)
+    redis.expire("resolve_git_commit-#{target}", 10)
   end
+  matched_container = JSON.parse(container_addr)
+
+  if matched_container["status"] != "success"
+    return_build_screen
+  else
+    # Forward to container
+    r = Apache::Request.new
+    r.reverse_proxy "http://#{matched_container["addr"]}" + r.uri
+    Apache::return(Apache::OK)
+  end
+
 end
