@@ -85,6 +85,26 @@ RUN usermod -G docker,pool apache
 RUN chgrp --recursive pool /app
 RUN chmod --recursive g+rwx /app
 
+RUN echo "install redis"
+RUN yum install -y wget
+RUN \
+  cd /tmp && \
+  wget http://download.redis.io/releases/redis-2.8.19.tar.gz && \
+  tar xvzf redis-2.8.19.tar.gz && \
+  cd redis-2.8.19 && \
+  make && \
+  make install && \
+  mkdir -p /etc/redis && \
+  cp -f redis.conf /etc/redis && \
+  cp -pi utils/redis_init_script /etc/init.d/redis && \
+  rm -rf /tmp/redis-2.8.19* && \
+  mkdir -p /opt/redis && \
+  sed -i 's/daemonize no/daemonize yes/g' /etc/redis/redis.conf && \
+  sed -i 's/dir \/data/dir \/opt\/redis/g' /etc/redis/redis.conf && \
+  sed -i 's/PIDFILE\=\/var\/run\/redis_\${REDISPORT}\.pid/PIDFILE\=\/var\/run\/redis\.pid/g' /etc/init.d/redis && \
+  sed -i 's/CONF\="\/etc\/redis\/\${REDISPORT}\.conf"/CONF\="\/etc\/redis\/redis\.conf"/g' /etc/init.d/redis
+RUN gem install redis
+
 # Set target preview repository
 ENV PREVIEW_REPOSITORY_URL https://github.com/mookjp/flaskapp.git
 ENV MAX_CONTAINERS 10

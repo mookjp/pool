@@ -24,6 +24,7 @@ echo ${POOL_BASE_DOMAIN} >> /etc/hosts
 
 chown root:docker /var/run/docker.sock && \
 chmod 775 /var/run/docker.sock && \
+/etc/init.d/redis start && \
 service crond start && \
 service httpd start && \
 supervisord -c /etc/supervisord.conf
