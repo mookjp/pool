@@ -88,6 +88,7 @@ RUN chmod --recursive g+rwx /app
 # Set target preview repository
 ENV PREVIEW_REPOSITORY_URL https://github.com/mookjp/flaskapp.git
 ENV MAX_CONTAINERS 10
+ENV GIT_COMMIT_ID_CACHE_EXPIRE 10
 ENV POOL_BASE_DOMAIN pool.dev
 ENV GITHUB_BOT false
 
