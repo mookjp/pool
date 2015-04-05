@@ -70,6 +70,8 @@ ADD keys /app/keys
 ADD /provisioning/ssh_config /var/www/.ssh/config
 ADD /provisioning/ssh_config /root/.ssh/config
 RUN chown -R apache. /var/www/.ssh
+RUN chmod 600 /var/www/.ssh/config /root/.ssh/config
+RUN chmod 700 /var/www/.ssh /root/.ssh
 
 # Add config files
 ADD config /app/config
