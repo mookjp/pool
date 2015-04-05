@@ -39,9 +39,12 @@ git_api = WebAPI.new("http://0.0.0.0:9000")
 # After requesting to initialize git repository via '/init_repo',
 # check if repository doesn't exist because of some error or fail,
 # Apache returns Bad request.
-git_api.get("/init_repo")
-
-unless FileTest.exist?(APP_REPO_DIR)
+res = git_api.get("/init_repo")
+if res.code != "200"
+  Apache.errlogger(Apache::APLOG_WARNING, "git_api /init_repo returned #{result.code}: #{result.body}")
+  Apache::return(Apache::HTTP_BAD_REQUEST)
+elsif !FileTest.exist?(APP_REPO_DIR)
+  Apache.errlogger(Apache::APLOG_WARNING, "#{APP_REPO_DIR} is not created")
   Apache::return(Apache::HTTP_BAD_REQUEST)
 else
   # Resolve actual git commit ref by target name got from subdomain via git
