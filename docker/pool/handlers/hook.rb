@@ -41,7 +41,7 @@ git_api = WebAPI.new("http://0.0.0.0:9000")
 # Apache returns Bad request.
 res = git_api.get("/init_repo")
 if res.code != "200"
-  Apache.errlogger(Apache::APLOG_WARNING, "git_api /init_repo returned #{result.code}: #{result.body}")
+  Apache.errlogger(Apache::APLOG_WARNING, "git_api /init_repo returned #{res.code}: #{res.body}")
   Apache::return(Apache::HTTP_BAD_REQUEST)
 elsif !FileTest.exist?(APP_REPO_DIR)
   Apache.errlogger(Apache::APLOG_WARNING, "#{APP_REPO_DIR} is not created")
