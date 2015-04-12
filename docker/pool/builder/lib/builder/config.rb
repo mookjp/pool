@@ -8,11 +8,20 @@ module Builder
     @defaults = {
       :repository_conf  => File.join(WORK_DIR, REPOSITORY_CONF),
       :base_domain_file => File.join(WORK_DIR, 'base_domain'),
+      :git_commit_id_cache_expire => File.join(WORK_DIR, 'git_commit_id_cache_expire'),
       :config_yml_path  => File.join(WORK_DIR, '../config', 'config.yml'),
       :id_list_file_path => File.join(WORK_DIR, ID_LIST_FILE_NAME)
     }
 
     module_function 
+
+    def defaults
+      @defaults
+    end
+
+    def read_git_commit_id_cache_expire(git_commit_id_cache_expire = @defaults[:git_commit_id_cache_expire]) 
+      File.open(git_commit_id_cache_expire).gets.chomp
+    end
 
     def read_base_domain(base_domain_file = @defaults[:base_domain_file]) 
       File.open(base_domain_file).gets.chomp

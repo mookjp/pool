@@ -1,6 +1,7 @@
 require 'eventmachine'
 require 'evma_httpserver'
 require 'builder/constants'
+require 'builder/git/cache'
 
 module Builder
   class GitHandler < EventMachine::Connection
@@ -12,6 +13,7 @@ module Builder
       @logger ||= Logger.new(STDOUT)
       @logger.info("GitHandler logger is initialized.")
       @logger.info([WORK_DIR, APP_REPO_DIR_NAME].join(","))
+      @cache =  Git::Cache.instance
       @repo_config = {
         :path => File.join(WORK_DIR, APP_REPO_DIR_NAME),
         :url =>  File.open(File.join(WORK_DIR, REPOSITORY_CONF)).gets.chomp
@@ -23,10 +25,11 @@ module Builder
       res = EventMachine::DelegatedHttpResponse.new(self)
 
       if @http_path_info =~ /^\/resolve_git_commit\/(.*)$/
+        refer_id = $1
         res.status = 200
         @logger.info "resolve git commit is called"
         begin
-          res.content = resolve_commit_id($1)
+          res.content = @cache.fetch(refer_id){ resolve_commit_id(refer_id) }
           @logger.info "resolve_commit_id: #{res.content}"
           return res.send_response
         rescue => e

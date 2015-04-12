@@ -1,6 +1,7 @@
 require 'spec_helper'
 
 require 'builder'
+require 'builder/constants'
 require 'builder/builder_log_device'
 require 'em-spec/rspec'
 require 'em-http'
@@ -17,12 +18,27 @@ describe 'git handler' do
     Dir.mkdir(@output_dir_path) if not FileTest.exist?(@output_dir_path)
     fixture_dir = File.join(@base_fixture_dir_path, 'app01')
 
+    module Builder
+      module Config
+        @defaults = {
+          :repository_conf  => File.join(WORK_DIR, REPOSITORY_CONF),
+          :base_domain_file => File.join(WORK_DIR, 'base_domain'),
+          :git_commit_id_cache_expire => File.join(WORK_DIR, 'git_commit_id_cache_expire'),
+          :config_yml_path  => File.join(WORK_DIR, '../config', 'config.yml'),
+          :id_list_file_path => File.join(WORK_DIR, ID_LIST_FILE_NAME)
+        }
+      end
+    end
+
     # create repository file
     fixture_repository_file_path =
         File.expand_path('preview_target_repository', fixture_dir)
     tmp_repository_file_path =
         File.expand_path('preview_target_repository', @output_dir_path)
     File.copy_stream(fixture_repository_file_path, tmp_repository_file_path)
+
+    git_commit_id_cache_expire_path = File.join(@output_dir_path, 'git_commit_id_cache_expire')
+    File.write(git_commit_id_cache_expire_path, 10)
   end
 
   after(:each) do

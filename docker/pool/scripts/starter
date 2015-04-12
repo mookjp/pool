@@ -18,6 +18,7 @@ fi
 echo -n ${PREVIEW_REPOSITORY_URL} > /app/images/preview_target_repository
 echo -n ${MAX_CONTAINERS} > /app/images/max_containers
 echo -n ${POOL_BASE_DOMAIN} > /app/images/base_domain
+echo -n ${GIT_COMMIT_ID_CACHE_EXPIRE} > /app/images/git_commit_id_cache_expire
 
 # setup hosts file
 echo ${POOL_BASE_DOMAIN} >> /etc/hosts
