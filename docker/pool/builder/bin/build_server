@@ -2,6 +2,7 @@
 # -*- mode: ruby -*-
 
 require 'builder'
+STDOUT.sync = true
 
 EM.run {
   # GET "http://0.0.0.0:9000/resolve_git_commit/origin/development",
