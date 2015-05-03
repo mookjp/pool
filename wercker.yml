@@ -13,6 +13,9 @@ build:
           sudo service docker start
           docker -v
     - script:
+        name: update apt-get
+        code: sudo apt-get update
+    - script:
         name: install ruby for slack notification
         code: sudo apt-get install -y ruby
     - script:
