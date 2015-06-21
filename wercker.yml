@@ -13,6 +13,12 @@ build:
           sudo service docker start
           docker -v
     - script:
+        name: update packages
+        code: |
+          sudo sed -i -E 's/http:\/\/.+\.archive.ubuntu.com/http:\/\/old-releases.ubuntu.com/g' /etc/apt/sources.list
+          sudo sed -i -E 's/security.ubuntu.com/old-releases.ubuntu.com/g' /etc/apt/sources.list
+          sudo apt-get update
+    - script:
         name: install ruby for slack notification
         code: sudo apt-get install -y ruby
     - script:
