@@ -34,23 +34,8 @@ RUN /usr/local/bin/gem build builder.gemspec
 RUN /usr/local/bin/gem install builder-0.0.1.gem
 
 # Add mod_mruby handler to manage request
-ADD handlers /app/handlers
 
-# Install build-screen
-RUN mkdir -p /app/handlers/resources
-RUN mkdir /tmp/build-screen
-# Add package.json beforehand then execute npm install
-ADD build-screen/package.json /tmp/build-screen/package.json
-WORKDIR /tmp/build-screen
-RUN npm install
-ADD build-screen /tmp/build-screen-2
-RUN cp -nr /tmp/build-screen-2/* /tmp/build-screen
-RUN cp -nr /tmp/build-screen-2/.[^.]* /tmp/build-screen
-# For bower install
-RUN git config --global url.https://.insteadOf git://
-RUN $(npm bin)/bower --allow-root install
-RUN $(npm bin)/grunt build
-RUN mv /tmp/build-screen/dist /app/handlers/resources/build-screen
+COPY ./build-screen/dist /app/handlers/resources/build-screen
 
 # Add util scripts for handling containers
 ADD scripts /app/scripts
