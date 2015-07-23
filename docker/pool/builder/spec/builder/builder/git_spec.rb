@@ -4,6 +4,7 @@ require 'spec_helper'
 require 'builder'
 require 'builder/builder_log_device'
 require 'fileutils'
+require 'pp'
 
 describe '.resolve_commit_id' do
   before(:each) do
